@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { useUserData } from '@/app/api/user/route'; // Asegúrate de que useUserData está definido correctamente
-import { useUserUpdate } from '@/app/api/user/route';
+import { useUserData } from '@/hooks/user/route'; // Asegúrate de que useUserData está definido correctamente
+import { useUserUpdate } from '@/hooks/user/route';
 import Loader from '@/components/ui/Loader';
 import { toast } from 'sonner'
 import { Button, Skeleton,Input  } from '@nextui-org/react';

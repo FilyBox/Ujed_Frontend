@@ -12,7 +12,7 @@ import {
     Chip,
     Avatar,
 } from "@nextui-org/react";
-import { useUserData } from "@/app/api/user/route";
+import { useUserData } from "@/hooks/user/route";
 import { useRouter } from 'next/navigation';
 
 

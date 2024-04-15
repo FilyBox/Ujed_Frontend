@@ -2,10 +2,10 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { useUserData } from '@/app/api/user/route';
+import { useUserData } from '@/hooks/user/route';
 import { Button, Card, Skeleton } from '@nextui-org/react';
 import { toast } from 'sonner';
-import { useDeleteUser } from '@/app/api/user/route';
+import { useDeleteUser } from '@/hooks/user/route';
 
 const ProfilePage = () => {
     const { userData, loading } = useUserData();
