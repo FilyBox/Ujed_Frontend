@@ -45,7 +45,7 @@ const LoginPage = () => {
     }
 
 
-    router.push("/dashboard/newreport");
+    router.push("/dashboard");
   };
 
   return (
