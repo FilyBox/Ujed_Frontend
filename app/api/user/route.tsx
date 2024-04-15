@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useCallback } from 'react';
 import { useSession, signOut,signIn } from "next-auth/react";
 import { UserProps, UpdateUserData } from '@/types/type';
