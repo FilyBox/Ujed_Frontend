@@ -69,7 +69,52 @@ const ProfilePage = () => {
                 
             </div>
         </Card>;
-    if (!userData) return <div className="flex justify-center items-center min-h-screen">Información del usuario no disponible</div>;
+    if (!userData) return  <Card className=" shadow overflow-hidden sm:rounded-lg max-w-4xl mx-auto my-10 p-6" radius="lg">
+    <div className="px-4 py-5 sm:px-6">
+        <h1 className="text-lg leading-6 font-medium text-gray-900">Usuario</h1>
+        <p className="mt-1 max-w-2xl text-sm text-gray-500">Detalles personales del usuario</p>
+    </div>
+    <div className="border-t border-gray-200">
+        <dl>
+            <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt className="text-sm font-medium text-gray-500">Nombre completo</dt>
+                <Skeleton className="h-3 mt-1 w-[3rem] rounded-lg"/>
+            </div>
+            <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt className="text-sm font-medium text-gray-500">Email</dt>
+                <Skeleton className="h-3 mt-1 w-full rounded-lg"/>
+            </div>
+            <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt className="text-sm font-medium text-gray-500">Roles</dt>
+                <Skeleton className="h-3 mt-1 w-full rounded-lg"/>
+            </div>
+            <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt className="text-sm font-medium text-gray-500">Fecha creación</dt>
+                <Skeleton className="h-3 mt-1 w-full rounded-lg"/>
+            </div>
+            <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt className="text-sm font-medium text-gray-500">Ultima actialización</dt>
+                <Skeleton className="h-3 mt-1 w-w-full rounded-lg"/>
+            </div>
+        </dl>
+    </div>
+
+    <div className="px-4 py-3 items-center sm:px-6 flex sm:flex-row-reverse justify-between">
+
+        <div className='sm:px-6 sm:flex sm:flex-row-reverse'>
+        <Button isDisabled className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+            Editar
+        </Button>
+        <Button isDisabled className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mr-4">
+            Eliminar
+        </Button>
+        </div>
+
+        <div className="  animate-spin rounded-full border-t-2 border-r-2 border-blue-500 border-solid h-8 w-8"></div>
+
+        
+    </div>
+</Card>;;
 
     const handleEdit = () => {
         // Redirige al usuario a la página de edición
@@ -78,7 +123,7 @@ const ProfilePage = () => {
 
 
     return (
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg max-w-4xl mx-auto my-10 p-6">
+        <div className="bg-white shadow overflow-hidden sm:rounded-lg max-w-full mx-auto sm:my-10 p-6 overflow-y-auto">
             <div className="px-4 py-5 sm:px-6">
                 <h1 className="text-lg leading-6 font-medium text-gray-900">Usuario</h1>
                 <p className="mt-1 max-w-2xl text-sm text-gray-500">Detalles personales del usuario</p>
@@ -87,7 +132,7 @@ const ProfilePage = () => {
                 <dl>
                     <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                         <dt className="text-sm font-medium text-gray-500">Nombre completo</dt>
-                        <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{userData.name} {userData.last_name}</dd>
+                        <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 break-words">{userData.name} {userData.last_name}</dd>
                     </div>
                     <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                         <dt className="text-sm font-medium text-gray-500">Email</dt>

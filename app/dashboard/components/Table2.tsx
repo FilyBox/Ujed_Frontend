@@ -19,6 +19,7 @@ import {
   Selection,
   ChipProps,
   SortDescriptor,
+  Tooltip,
 } from "@nextui-org/react";
 import { ChevronDownIcon } from "./ChevronDownIcon";
 import { columns, statusOptions } from "./data";
@@ -180,49 +181,44 @@ const Table2: React.FC<Table2Props> = ({ reports }) => {
         );
       case "actions":
         return (
-          <div className="relative flex justify-end items-center gap-2" aria-labelledby="group1">
-            <Link href={{
-                    pathname: '/dashboard/reportsdetails',
-                    query:{id: report.id } 
-                  }}>View</Link>
-            <Dropdown aria-label="Action options">
-              <DropdownTrigger aria-label="Show actions">
-                <Button isIconOnly size="sm" variant="light" aria-label="More actions">
-                  <ChevronDownIcon className="text-small" />
-                </Button>
-              </DropdownTrigger>
-              <DropdownMenu aria-label="Action choices">
-                <DropdownItem >
+          // <div className="relative flex justify-end items-center gap-2" aria-labelledby="group1">
+          //   <Link href={{
+          //           pathname: '/dashboard/reportsdetails',
+          //           query:{id: report.id } 
+          //         }}>View</Link>
+          //   <Dropdown aria-label="Action options">
+          //     <DropdownTrigger aria-label="Show actions">
+          //       <Button isIconOnly size="sm" variant="light" aria-label="More actions">
+          //         <ChevronDownIcon className="text-small" />
+          //       </Button>
+          //     </DropdownTrigger>
+          //     <DropdownMenu aria-label="Action choices">
+          //       <DropdownItem >
                   
 
                   
-                <Link className="min-w-2.5 bg-slate-500" href={{
+          //       <Link className="min-w-2.5 bg-slate-500" href={{
+          //           pathname: '/dashboard/reportsdetails',
+          //           query:{id: report.id } 
+          //         }}>Ver</Link>
+          //       </DropdownItem>
+          //       <DropdownItem>Editar</DropdownItem>
+          //       <DropdownItem>Eliminar</DropdownItem>
+          //     </DropdownMenu>
+          //   </Dropdown>
+          // </div>
+          <div className="relative flex items-center justify-center">
+          <Tooltip content="Ver">
+          
+            <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
+            <Link href={{
                     pathname: '/dashboard/reportsdetails',
                     query:{id: report.id } 
-                  }}>Ver</Link>
-                </DropdownItem>
-                <DropdownItem>Editar</DropdownItem>
-                <DropdownItem>Eliminar</DropdownItem>
-              </DropdownMenu>
-            </Dropdown>
-          </div>
-        //   <div className="relative flex items-center gap-2">
-        //   <Tooltip content="Details">
-        //     <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
-        //       <EyeIcon />
-        //     </span>
-        //   </Tooltip>
-        //   <Tooltip content="Edit user">
-        //     <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
-        //       <EditIcon />
-        //     </span>
-        //   </Tooltip>
-        //   <Tooltip color="danger" content="Delete user">
-        //     <span className="text-lg text-danger cursor-pointer active:opacity-50">
-        //       <DeleteIcon />
-        //     </span>
-        //   </Tooltip>
-        // </div>
+                  }}><EyeIcon /></Link>
+            </span>
+          </Tooltip>
+          
+        </div>
         );
       default:
         return cellValue;
@@ -384,8 +380,8 @@ const Table2: React.FC<Table2Props> = ({ reports }) => {
         wrapper: "",
       }}
       className="w-full h-full"
-      selectedKeys={selectedKeys}
-      selectionMode="multiple"
+      // selectedKeys={selectedKeys}
+      // selectionMode="multiple"
       sortDescriptor={sortDescriptor}
       topContent={topContent}
       topContentPlacement="outside"
