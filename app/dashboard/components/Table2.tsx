@@ -32,7 +32,7 @@ import { useSession } from "next-auth/react";
 import { toast } from 'sonner'
 
 import { FiSearch } from "react-icons/fi";
-import { updateReportStatus } from "@/app/api/reports/route";
+import { updateReportStatus } from "@/hooks/route";
 
 const statusColorMap: Record<string, ChipProps["color"]> = {
   "en espera": "warning",

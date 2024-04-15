@@ -4,7 +4,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Loader from '@/components/ui/Loader';
-import { DashboardFetchReports } from '../api/reports/route';
+import { DashboardFetchReports } from '../../hooks/route';
 import { toast } from 'sonner';
 
 export default function Dashboard() {

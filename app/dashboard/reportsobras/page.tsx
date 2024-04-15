@@ -7,7 +7,7 @@ import Table2 from "../components/Table2";
 import Loader from "@/components/ui/Loader";
 import { toast } from 'sonner'
 import UnauthorizedMessage from "@/components/UnauthorizedMessage";
-import { useFetchReports } from "@/app/api/reports/route";
+import { useFetchReports } from "@/hooks/route";
 
 export default function ReportsObras() {
 
