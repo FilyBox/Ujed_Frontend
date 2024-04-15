@@ -123,7 +123,7 @@ export const updateReportStatus = async (reportId:string, newStatus:string, toke
 };
 
 
-const deleteReport = async (reportId: string) => {
+export const deleteReport = async (reportId: string) => {
   const { data: session } = useSession();
 
   try {
@@ -141,6 +141,4 @@ const deleteReport = async (reportId: string) => {
     throw error; // Rethrow the error for further handling
   }
 };
-
-export default deleteReport;
 
