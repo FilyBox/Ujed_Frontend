@@ -102,13 +102,13 @@ export const useFetchReports = () => {
 
 export const updateReportStatus = async (reportId:string, newStatus:string, token:string) => {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/${reportId}/${newStatus}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/${reportId}/status`, {
       method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({  }),
+      body: JSON.stringify({ status: newStatus }),
     });
     const data = await response.json();
     if (!response.ok) {

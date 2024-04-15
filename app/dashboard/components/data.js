@@ -11,10 +11,10 @@ const columns = [
 ];
 
 const statusOptions = [
-  {name: "En Espera", uid: "en espera"},
-  {name: "Resueltos", uid: "resuelto"},
-  {name: "Asignado", uid: "asignado"},
-  {name: "Descartado", uid: "descartado"},
+  {name: "en espera", uid: "en espera"},
+  {name: "resuelto", uid: "resuelto"},
+  {name: "asignado", uid: "asignado"},
+  {name: "descartado", uid: "descartado"},
 
 ];
 
