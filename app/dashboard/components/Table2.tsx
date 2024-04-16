@@ -259,7 +259,7 @@ const Table2: React.FC<Table2Props> = ({ reports }) => {
   const topContent = useMemo(() => {
     return (
       <div className="flex flex-col gap-4">
-        <div className="flex justify-between gap-3 items-end">
+        <div className="flex flex-col sm:flex-row justify-between gap-3 items-end">
           <Input
             isClearable
             className="w-full sm:max-w-[44%]"
@@ -318,7 +318,7 @@ const Table2: React.FC<Table2Props> = ({ reports }) => {
         <div className="flex justify-between items-center">
           <span className="text-default-400 text-small"> {reports.length} reportes totales</span>
           <label className="flex items-center text-default-400 text-small">
-            Rows per page:
+            Filas por página:
             <select
               className="bg-transparent outline-none text-default-400 text-small"
               onChange={onRowsPerPageChange}
