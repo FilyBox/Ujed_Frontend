@@ -22,7 +22,8 @@ import {
   Tooltip,
 } from "@nextui-org/react";
 import { ChevronDownIcon } from "./ChevronDownIcon";
-import { departmentColorMap,statusColorMap, ReportProps, Table2Props } from "./consts";
+import { departmentColorMap,statusColorMap } from "./consts";
+import { ReportPropsTable,Table2Props } from "@/types/type";
 import { columns, statusOptions, departmentOptions, departmentOptionsNoNull } from "./data";
 import { capitalize } from "./utils";
 import { useRouter } from "next/navigation";
@@ -167,17 +168,17 @@ const Table2: React.FC<Table2Props> = ({ reports }) => {
   }, [page, filteredItems, rowsPerPage]);
 
   const sortedItems = useMemo(() => {
-    return [...items].sort((a: ReportProps, b: ReportProps) => {
-      const first = a[sortDescriptor.column as keyof ReportProps] as unknown as number;
-      const second = b[sortDescriptor.column as keyof ReportProps] as unknown as number;
+    return [...items].sort((a: ReportPropsTable, b: ReportPropsTable) => {
+      const first = a[sortDescriptor.column as keyof ReportPropsTable] as unknown as number;
+      const second = b[sortDescriptor.column as keyof ReportPropsTable] as unknown as number;
       const cmp = first < second ? -1 : first > second ? 1 : 0;
 
       return sortDescriptor.direction === "descending" ? -cmp : cmp;
     });
   }, [sortDescriptor, items]);
 
-  const renderCell = useCallback((report: ReportProps, columnKey: React.Key) => {
-    const cellValue = report[columnKey as keyof ReportProps];
+  const renderCell = useCallback((report: ReportPropsTable, columnKey: React.Key) => {
+    const cellValue = report[columnKey as keyof ReportPropsTable];
 
     switch (columnKey) {
       case "created_at":
