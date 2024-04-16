@@ -34,13 +34,13 @@ export const SIDENAV_ITEMS: SideNavItemGroup[] = [
             icon: <IoConstruct size={20} />,
         }]
     },
-    {
-        title: "",
-        menuList: [{
-            title: 'Descartados',
-            path: '/dashboard//Discarted',
-            icon: <BsHouseDoor size={20} />,
-        }]
-    },
+    // {
+    //     title: "",
+    //     menuList: [{
+    //         title: 'Descartados',
+    //         path: '/dashboard//Discarted',
+    //         icon: <BsHouseDoor size={20} />,
+    //     }]
+    // },
    
 ];

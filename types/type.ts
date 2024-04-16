@@ -42,3 +42,20 @@ export interface ReportProps {
   department: string;
   user: UserProps;
   images: ImageProps[];}
+
+  export interface ReportPropsTable {
+    id: string;
+    title: string;
+    description: string;
+    status: string;
+    created_at: string;
+    updated_at: string;
+    location: string;
+    department: string;
+    user: [];
+  }
+  
+  export interface Table2Props {
+    reports: ReportPropsTable[];
+  }
+  

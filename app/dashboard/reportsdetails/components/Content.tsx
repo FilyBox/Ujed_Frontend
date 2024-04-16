@@ -13,10 +13,16 @@ import { ReportProps, ImageProps } from '@/types/type';
 
 // Componente para la cabecera del reporte
 const Header = ({ title, createdAt }: { title: string, createdAt: string }) => {
+  const displayTitle = title.split(' - ')[0]; // Divide el título en ' - ' y toma el primer elemento
+  const displayDate = createdAt.split(' T ')[0]; // Divide el título en ' - ' y toma el primer elemento
+
+  const userNameDisplay = displayTitle ? (displayTitle.length > 10 ? `${displayTitle.substring(0, 10)}...` : displayTitle) : "";
+
   return (
-    <div className="w-full flex justify-between px-5 items-center gap-2 bg-red-500 py-2">
-      <h1 className="text-lg">{title}</h1>
-      <h1 className="text-lg">{createdAt}</h1>
+    <div className="w-full flex flex-col sm:flex-row justify-between px-5 items-center gap-2 bg-red-500 py-2">
+      
+      <h1 className="text-lg">{userNameDisplay}</h1>
+      <h1 className="text-lg">{displayDate}</h1>
     </div>
   );
 };
@@ -77,7 +83,7 @@ const Content = ({ report }: { report: ReportProps }) => {
     <Header title={report.title} createdAt={report.created_at} />
     <h1 className="text-lg">{report.title}</h1>
     </div>
-      <section className="h-full  w-full flex flex-col md:grid md:grid-rows-5 md:grid-flow-col gap-x-4">
+      <section className="h-full  w-full flex flex-col md:grid md:grid-rows-5 md:grid-flow-col gap-x-4 pb-5">
         <div className="flex flex-col w-full   h-full">
             <p className="text-xl text-black">Usuario</p>
             <Textarea isReadOnly variant="bordered" placeholder="Nombre del usuario"
@@ -111,10 +117,10 @@ const Content = ({ report }: { report: ReportProps }) => {
             defaultValue={report.description}  />
         </div>
 
-        <div className="row-span-3 sm:col-span-2 h-full flex flex-col w-full">
+        <div className="row-span-2 col-span-2 h-full flex flex-col w-full">
         {report.images && report.images.length > 0 &&     
         <Swiper
-        className='w-96 max-h-96'
+        className='w-52 sm:w-96 max-h-96'
         navigation={true}
             pagination={true}
             mousewheel={true}

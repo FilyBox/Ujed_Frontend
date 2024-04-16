@@ -7,52 +7,26 @@ import { useSession } from "next-auth/react";
 import Content from './components/Content';
 import Loader from '@/components/ui/Loader';
 import { ReportProps } from '@/types/type';
+import { useFetchSingleReport } from '@/hooks/route';
 
 export default function ReportDetails({}) {
-  const params = useParams<{ id: string }>()
+
   const searchParams = useSearchParams()
   const search = searchParams.get('id')
-  const { data: session, status } = useSession();
+  const { report, loading, error } = search ? useFetchSingleReport(search) : { report: null, loading: false, error: null };
 
-  const [report, setReport] = useState<ReportProps | null>(null); // Utiliza el tipo definido
-  const [loading, setLoading] = useState(true);
-
-
-  useEffect(() => {
-    if (session) {
-      fetchReport();
-    }
-  }, [session]);
-
-  async function fetchReport() {
-    if (search && typeof search === 'string') { // Asegúrate de que 'id' es un string
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/${search}`, {
-          method: 'GET',
-          headers: {
-            "Content-Type": "application/json",
-            authorization: `Bearer ${session?.user?.token}`,
-          },
-        });
-        const data: ReportProps = await response.json(); // Asegúrate de que la respuesta se trata como ReportProps
-        setReport(data);
-        setLoading(false);
-
-      } catch (error) {
-        console.error('Failed to fetch report:', error);
-      }
-    }
-  };
-
-  if (!report) {
-    return  <Loader />;
+  if (loading) {
+    return <Loader />;
   }
 
-  return (
-    
-    <>
-      <Content report={report}/>
-      </>
-  );
-};
+  if (error) {
+    return <Loader />;
+  }
+
+  if (!report) {
+    return <Loader />;
+  }
+
+  return <Content report={report} />;
+}
 
