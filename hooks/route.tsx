@@ -15,7 +15,7 @@ export const DashboardFetchReports = () => {
     const fetchReports = async () => {
       if (!session) return;
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/reports`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/?limit=999`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -162,7 +162,7 @@ export const useFetchReports = () => {
       }
 
       try {
-          const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/reports`, {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/?limit=999`, {
               method: 'GET',
               headers: {
                   'Content-Type': 'application/json',
@@ -199,7 +199,67 @@ export const useFetchReports = () => {
   return { reports, loading, error };
 };
 
-// api/updateReportStatus.js
+//Mantenimiento reports
+export const useFetchMantenimientoReports = () => {
+  const { data: session, status } = useSession();
+  const [loading, setLoading] = useState(true);
+  const [reports, setReports] = useState([]);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+      if (status === 'unauthenticated') {
+          signIn();  // Automatically trigger sign-in
+      } else if (status === 'authenticated') {
+          fetchReports();
+      }
+  }, [status]);
+
+  async function fetchReports() {
+      if (!session) {
+          console.error("No session found!");
+          return;
+      }
+
+      try {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/department/mantenimiento/?limit=999`, {
+              method: 'GET',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${session.user.token}`,
+              },
+          });
+
+          if (response.status === 401) {
+              signOut();  // Sign out if unauthorized
+              toast.error("La sesión ha caducado");
+              return;
+          }
+
+          if (response.status === 403) {
+              toast.error("No tienes los permisos para ver este contenido");
+              return;
+          }
+
+          if (!response.ok) {
+              throw new Error('Failed to fetch reports');
+          }
+
+          const data = await response.json();
+          setReports(data);
+      } catch (error:any) {
+          setError(error.message);
+          console.error('Error fetching reports:', error);
+          toast.error(error.message || 'An error occurred while fetching reports.');
+      } finally {
+          setLoading(false);
+      }
+  }
+
+  return { reports, loading, error };
+};
+
+
+// uptade el estatus
 
 export const updateReportStatus = async (reportId:string, newStatus:string, token:string) => {
   try {
@@ -215,12 +275,42 @@ export const updateReportStatus = async (reportId:string, newStatus:string, toke
     if (!response.ok) {
       throw new Error(data.message || 'Failed to update report');
     }
+    console.log(reportId)
+
+    console.log(newStatus)
     return data;
   } catch (error) {
     console.error('Error updating report status:', error);
     throw error;
   }
 };
+
+// Update el departament
+
+export const updateReportDepartment = async (reportId:string, newDepartment:string, token:string) => {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/${reportId}/department`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ department: newDepartment }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to update department');
+    }
+    console.log(reportId)
+
+    console.log(newDepartment)
+    return data;
+  } catch (error) {
+    console.error('Error updating report department:', error);
+    throw error;
+  }
+};
+
 
 
 export const deleteReport = async (reportId: string) => {

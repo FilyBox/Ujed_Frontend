@@ -22,24 +22,28 @@ import {
   Tooltip,
 } from "@nextui-org/react";
 import { ChevronDownIcon } from "./ChevronDownIcon";
-import { columns, statusOptions } from "./data";
+import { columns, statusOptions, departmentOptions } from "./data";
 import { capitalize } from "./utils";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { EyeIcon } from "./EyeIcon";
-import { EditIcon } from "./EditIcon";
-import { DeleteIcon } from "./DeleteIcon";
 import { useSession } from "next-auth/react";
 import { toast } from 'sonner'
 
 import { FiSearch } from "react-icons/fi";
-import { updateReportStatus } from "@/hooks/route";
+import { updateReportStatus, updateReportDepartment } from "@/hooks/route";
 
 const statusColorMap: Record<string, ChipProps["color"]> = {
   "en espera": "warning",
   asignado: "default",
   resuelto: "success",
   descartado: "danger",
+};
+
+const departmentColorMap: Record<string, ChipProps["color"]> = {
+  "sin asignar": "warning",
+  obras: "warning",
+  mantenimiento: "primary",
 };
 
 interface ReportProps {
@@ -49,6 +53,8 @@ interface ReportProps {
   status: string;
   created_at: string;
   updated_at: string;
+  location: string;
+  department: string;
   user: [];
 }
 
@@ -56,7 +62,7 @@ interface Table2Props {
   reports: ReportProps[];
 }
 
-const INITIAL_VISIBLE_COLUMNS = ["title", "description", "status", "actions", "name", "created_at"];
+const INITIAL_VISIBLE_COLUMNS = ["title", "description", "status", "actions","department", "name", "created_at"];
 
 const Table2: React.FC<Table2Props> = ({ reports }) => {
   const { data: session } = useSession();
@@ -65,6 +71,8 @@ const Table2: React.FC<Table2Props> = ({ reports }) => {
   const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set([]));
   const [visibleColumns, setVisibleColumns] = useState<Selection>(new Set(INITIAL_VISIBLE_COLUMNS));
   const [statusFilter, setStatusFilter] = useState<Selection>("all");
+  const [departmentFilter, setDepartmentFilter] = useState<Selection>("all");
+
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({
     column: "age",
@@ -84,12 +92,51 @@ const Table2: React.FC<Table2Props> = ({ reports }) => {
     try {
       const updatedReport = await updateReportStatus(reportId, newStatus, session.user.token);
       console.log('Report updated successfully:', updatedReport);
+      console.log("ID:"+reportId)
       toast.success(
         <div className="success alert-success">
           Estatus actualizado
         </div>,
         { duration: 3000 }
       );
+      setTimeout(() => {
+        // Recargar la página
+        window.location.reload();
+        
+        // O actualizar los datos sin recargar
+        // fetchReports(); // Asumiendo que tienes una función fetchReports para recargar los reportes
+      }, 3000); // Sincronizado con la duración del toast
+    } catch (error) {
+      console.error('Failed to update report:', error);
+      toast.error(
+        <div className="alert alert-danger">
+          No fue posible actualizar el estatus
+        </div>,
+        { duration: 3000 }
+      );
+    }
+  };
+
+  const handleDeparmentChange = async (reportId:string, newDepartment:string) => {
+    if (!session) {
+      console.error("No session available");
+      return;
+    }
+    try {
+      const updatedDepartment = await updateReportDepartment(reportId, newDepartment, session.user.token);
+      console.log('Report updated successfully:', updatedDepartment);
+      console.log("ID:"+reportId)
+      toast.success(
+        <div className="success alert-success">
+          Estatus actualizado
+        </div>,
+        { duration: 3000 }
+      );
+      setTimeout(() => {
+        // Recargar la página
+        window.location.reload();
+        
+      }, 3000); // Sincronizado con la duración del toast
       // Optionally, refresh your reports here or handle UI updates
     } catch (error) {
       console.error('Failed to update report:', error);
@@ -108,8 +155,16 @@ const Table2: React.FC<Table2Props> = ({ reports }) => {
     return columns.filter((column) => Array.from(visibleColumns).includes(column.uid));
   }, [visibleColumns]);
 
+  // Preprocesar reportes para manejar valores nulos en el departamento
+  const preprocessedReports = useMemo(() => {
+    return reports.map(report => ({
+      ...report,
+      department: report.department || "Sin asignar" // Asigna "Sin asignar" si department es null
+    }));
+  }, [reports]);
+
   const filteredItems = useMemo(() => {
-    let filteredReports = [...reports];
+    let filteredReports = [...preprocessedReports];
 
     if (hasSearchFilter) {
       filteredReports = filteredReports.filter((report) =>
@@ -123,8 +178,14 @@ const Table2: React.FC<Table2Props> = ({ reports }) => {
       );
     }
 
+    if (departmentFilter !== "all" && Array.from(departmentFilter).length !== departmentOptions.length) {
+      filteredReports = filteredReports.filter((report) =>
+        Array.from(departmentFilter).includes(report.department)
+      );
+    }
+
     return filteredReports;
-  }, [reports, filterValue, statusFilter, hasSearchFilter]);
+  }, [reports, filterValue, statusFilter, hasSearchFilter, departmentFilter]);
 
   const pages = Math.ceil(filteredItems.length / rowsPerPage);
 
@@ -177,8 +238,34 @@ const Table2: React.FC<Table2Props> = ({ reports }) => {
               </DropdownMenu>
             </Dropdown>
           </div>
+
           
         );
+
+        case "department":
+          return (
+            <div className="flex justify-center items-center">
+              <Chip className="capitalize" color={departmentColorMap[report.department]} size="sm" variant="flat">
+              {cellValue}
+            </Chip>
+              <Dropdown  aria-label="Status options">
+              <DropdownTrigger aria-label="Show status options">
+                  <Button isIconOnly size="sm" variant="light" aria-label="status chevron">
+                    <ChevronDownIcon className="text-small" />
+                  </Button>
+                </DropdownTrigger>
+                <DropdownMenu aria-label="option choices">
+                  {departmentOptions.map(department => (
+                    <DropdownItem key={department.name} onClick={() => handleDeparmentChange(report.id, department.name)}>
+                      {department.name}
+                    </DropdownItem>
+                  ))}
+                </DropdownMenu>
+              </Dropdown>
+            </div>
+  
+            
+          );
       case "actions":
         return (
           // <div className="relative flex justify-end items-center gap-2" aria-labelledby="group1">
@@ -294,6 +381,27 @@ const Table2: React.FC<Table2Props> = ({ reports }) => {
             <Dropdown>
               <DropdownTrigger className="hidden sm:flex">
                 <Button endContent={<ChevronDownIcon className="text-small" />} variant="flat">
+                  Departamento
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu
+                disallowEmptySelection
+                aria-label="Table Columns"
+                closeOnSelect={false}
+                selectedKeys={departmentFilter}
+                selectionMode="multiple"
+                onSelectionChange={setDepartmentFilter}
+              >
+                {departmentOptions.map((department) => (
+                  <DropdownItem key={department.uid} className="capitalize">
+                    {capitalize(department.name)}
+                  </DropdownItem>
+                ))}
+              </DropdownMenu>
+            </Dropdown>
+            <Dropdown>
+              <DropdownTrigger className="hidden sm:flex">
+                <Button endContent={<ChevronDownIcon className="text-small" />} variant="flat">
                   Columnas
                 </Button>
               </DropdownTrigger>
@@ -334,6 +442,7 @@ const Table2: React.FC<Table2Props> = ({ reports }) => {
   }, [
     filterValue,
     statusFilter,
+    departmentFilter,
     visibleColumns,
     onSearchChange,
     onRowsPerPageChange,

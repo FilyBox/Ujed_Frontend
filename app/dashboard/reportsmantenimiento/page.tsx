@@ -7,11 +7,11 @@ import Table2 from "../components/Table2";
 import Loader from "@/components/ui/Loader";
 import { toast } from 'sonner'
 import UnauthorizedMessage from "@/components/UnauthorizedMessage";
-import { useFetchReports } from "@/hooks/route";
+import { useFetchMantenimientoReports } from "@/hooks/route";
 
 export default function ReportsMantenimiento() {
 
-  const { reports, loading } = useFetchReports();
+  const { reports, loading } = useFetchMantenimientoReports();
 
   if (loading) {
       return <Loader />;
