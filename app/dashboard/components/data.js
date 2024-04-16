@@ -1,4 +1,23 @@
-import React from "react";
+import {
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
+  Input,
+  Button,
+  DropdownTrigger,
+  Dropdown,
+  DropdownMenu,
+  DropdownItem,
+  Chip,
+  Pagination,
+  Selection,
+  ChipProps,
+  SortDescriptor,
+  Tooltip,
+} from "@nextui-org/react";
 const columns = [
     {name: "Estatus", uid: "status", sortable: true},
     {name: "Departamento", uid: "department", sortable: true},
@@ -29,5 +48,13 @@ const departmentOptions = [
 
 ];
 
+const departmentOptionsNoNull = [
+  {name: "obras", uid: "obras"},
+  {name: "mantenimiento", uid: "mantenimiento"},
 
-export {columns, statusOptions, departmentOptions};
+];
+
+
+
+
+export {columns, statusOptions, departmentOptions, departmentOptionsNoNull};

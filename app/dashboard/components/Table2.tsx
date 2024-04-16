@@ -22,45 +22,18 @@ import {
   Tooltip,
 } from "@nextui-org/react";
 import { ChevronDownIcon } from "./ChevronDownIcon";
-import { columns, statusOptions, departmentOptions } from "./data";
+import { departmentColorMap,statusColorMap, ReportProps, Table2Props } from "./consts";
+import { columns, statusOptions, departmentOptions, departmentOptionsNoNull } from "./data";
 import { capitalize } from "./utils";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { EyeIcon } from "./EyeIcon";
 import { useSession } from "next-auth/react";
 import { toast } from 'sonner'
-
+import { useUserData } from "@/hooks/user/route";
 import { FiSearch } from "react-icons/fi";
 import { updateReportStatus, updateReportDepartment } from "@/hooks/route";
 
-const statusColorMap: Record<string, ChipProps["color"]> = {
-  "en espera": "warning",
-  asignado: "default",
-  resuelto: "success",
-  descartado: "danger",
-};
-
-const departmentColorMap: Record<string, ChipProps["color"]> = {
-  "sin asignar": "warning",
-  obras: "warning",
-  mantenimiento: "primary",
-};
-
-interface ReportProps {
-  id: string;
-  title: string;
-  description: string;
-  status: string;
-  created_at: string;
-  updated_at: string;
-  location: string;
-  department: string;
-  user: [];
-}
-
-interface Table2Props {
-  reports: ReportProps[];
-}
 
 const INITIAL_VISIBLE_COLUMNS = ["title", "description", "status", "actions","department", "name", "created_at"];
 
@@ -103,8 +76,6 @@ const Table2: React.FC<Table2Props> = ({ reports }) => {
         // Recargar la página
         window.location.reload();
         
-        // O actualizar los datos sin recargar
-        // fetchReports(); // Asumiendo que tienes una función fetchReports para recargar los reportes
       }, 3000); // Sincronizado con la duración del toast
     } catch (error) {
       console.error('Failed to update report:', error);
@@ -137,7 +108,6 @@ const Table2: React.FC<Table2Props> = ({ reports }) => {
         window.location.reload();
         
       }, 3000); // Sincronizado con la duración del toast
-      // Optionally, refresh your reports here or handle UI updates
     } catch (error) {
       console.error('Failed to update report:', error);
       toast.error(
@@ -255,7 +225,7 @@ const Table2: React.FC<Table2Props> = ({ reports }) => {
                   </Button>
                 </DropdownTrigger>
                 <DropdownMenu aria-label="option choices">
-                  {departmentOptions.map(department => (
+                  {departmentOptionsNoNull.map(department => (
                     <DropdownItem key={department.name} onClick={() => handleDeparmentChange(report.id, department.name)}>
                       {department.name}
                     </DropdownItem>

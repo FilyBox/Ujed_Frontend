@@ -22,6 +22,16 @@ export const useUserData = (): { userData: UserProps | null, loading: boolean } 
               'Content-Type': 'application/json'
             }
           });
+          if (response.status === 401) {
+            signOut();  // Sign out if unauthorized
+            toast.error("La sesión ha caducado");
+            return;
+        }
+      
+        if (response.status === 403) {
+            toast.error("No tienes los permisos para esta accion");
+            return;
+        }
           const data = await response.json();
           if (response.ok) {
             setUserData(data);
@@ -63,6 +73,18 @@ export const useUserUpdate = () => {
                         last_name: data?.last_name,
                       }),
                 });
+
+                if (response.status === 401) {
+                  signOut();  // Sign out if unauthorized
+                  toast.error("La sesión ha caducado");
+                  return;
+              }
+            
+              if (response.status === 403) {
+                  toast.error("No tienes los permisos para esta accion");
+                  return;
+              }
+
                 const result = await response.json();
                 if (!response.ok) {
                     throw new Error(result.message || "Unable to update user data");
@@ -107,11 +129,16 @@ export const useDeleteUser = () => {
         },
       });
 
-      if (response.status === 401 || response.status === 403) {
-        signOut();  // Sign out if unauthorized or forbidden
-        toast.error("Session expired or access forbidden. Signing out.");
-        return;
-      }
+          if (response.status === 401) {
+      signOut();  // Sign out if unauthorized
+      toast.error("La sesión ha caducado");
+      return;
+  }
+
+  if (response.status === 403) {
+      toast.error("No tienes los permisos para esta accion");
+      return;
+  }
 
       if (!response.ok) {
           throw new Error('Failed to delete the user');
