@@ -62,7 +62,8 @@ const LoginPage = () => {
               className="form-control w-full px-4 py-2 border text-gray-800 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
               value={email} onChange={(event)=> setEmail(event.target.value)}
             />
-            <input type="contraseña" placeholder="contraseña" name="password"
+            <input           type="password"
+                   placeholder="contraseña" name="password"
               className="form-control w-full px-4 py-2 border text-gray-800 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
               value={password} onChange={(event)=> setPassword(event.target.value)}
             />

@@ -5,19 +5,13 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Loader from '@/components/ui/Loader';
 import { DashboardFetchReports } from '../../hooks/route';
-import { toast } from 'sonner';
 
 export default function Dashboard() {
   const { loading, reports, error } = DashboardFetchReports();
 
   if (loading) return <Loader />;
 
-  if (error) return toast.error(
-    <div className="alert alert-danger">
-      {error}
-    </div>,
-    { duration: 3000 }
-  );
+  if (error) return <Loader />;
 
   return (
     <>
