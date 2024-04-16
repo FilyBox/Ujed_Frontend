@@ -22,8 +22,20 @@ export const DashboardFetchReports = () => {
             authorization: `Bearer ${session?.user?.token}`,
           },
         });
+
+        if (response.status === 401) {
+          signOut();  // Sign out if unauthorized
+          toast.error("La sesión ha caducado");
+          return;
+      }
+
+      if (response.status === 403) {
+          toast.error("No tienes los permisos para ver este contenido");
+          return;
+      }
+
         if (!response.ok) {
-          throw new Error('Failed to fetch reports');
+          throw new Error('No tienes los permisos para ver este contenido');
         }
         const data = await response.json();
         setReports(data);
@@ -375,7 +387,7 @@ export const updateReportDepartment = async (reportId:string, newDepartment:stri
       toast.error("No tienes los permisos para esta accion");
       return;
   }
-  
+
     const data = await response.json();
     if (!response.ok) {
       throw new Error(data.message || 'Failed to update department');

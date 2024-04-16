@@ -56,8 +56,6 @@ const Table2: React.FC<Table2Props> = ({ reports }) => {
 
   const hasSearchFilter = Boolean(filterValue);
 
-  const router = useRouter();
-
   const handleStatusChange = async (reportId:string, newStatus:string) => {
     if (!session) {
       console.error("No session available");
