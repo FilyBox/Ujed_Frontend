@@ -7,7 +7,7 @@ export default function RootLayout({ children, pathname }: { children: React.Rea
 
     <>
     <SideBar />
-    <div className="flex flex-col h-full w-full">
+    <div className="flex flex-col h-full w-full bg-gray-100">
        <Header/>
 
       <PageWrapper children={children} />

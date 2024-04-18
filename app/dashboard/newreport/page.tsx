@@ -8,6 +8,7 @@ import Loader from "@/components/ui/Loader";
 import { toast } from 'sonner'
 import UnauthorizedMessage from "@/components/UnauthorizedMessage";
 import { useFetchReports } from "@/hooks/route";
+import List from "../components/List";
 export default function NewReport() {
 
   const { reports, loading } = useFetchReports();
@@ -18,7 +19,17 @@ export default function NewReport() {
 
   return (    
     <>
-     <Table2 reports={reports} />
+
+    <div className="hidden sm:block">
+      <Table2 reports={reports} />
+
+    </div>
+
+    <div className="block sm:hidden">
+      <List reports={reports}/>
+
+    </div>
+
       
     </>
   )

@@ -22,7 +22,7 @@ export default function RootLayout({
   return (
     
     <html lang="en" suppressHydrationWarning>
-      <body className={karla.className + ' h-screen overflow-hidden'}>
+      <body className={karla.className + ' h-screen overflow-hidden bg-gray-100'}>
         
 
           <>

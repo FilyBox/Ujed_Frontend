@@ -15,8 +15,10 @@ export default function ReportDetails({}) {
   const search = searchParams.get('id')
   const department = searchParams.get('department')
 
-  const [reports, setReport] = useState<ReportProps | null>(null);
+
   const { report, loading, error } = search ? useFetchSingleReport(search) : { report: null, loading: false, error: null };
+
+
   const { data: session, status } = useSession();
 
   if (session){
@@ -31,6 +33,8 @@ export default function ReportDetails({}) {
   if (error) {
     return <Loader />;
   }
+
+
 
   if (!report) {
     return <Loader />;

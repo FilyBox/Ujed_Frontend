@@ -23,7 +23,8 @@ export default function Header() {
     const { data: session, status } = useSession();
     const { toggleCollapse, invokeToggleCollapse } = useSideBarToggle();
     const router = useRouter();
-
+    const { update } = useSession();
+    
     const sidebarToggle = () => {
         invokeToggleCollapse();
     };

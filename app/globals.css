@@ -8,7 +8,9 @@
 
     @layer base {
       :root {
-        --background: 0 0% 100%;
+        --tw-bg-opacity: 1;
+        background-color: rgb(243 244 246 / var(--tw-bg-opacity));
+        --background: rgb(243 244 246 / var(--tw-bg-opacity));
         --foreground: 20 14.3% 4.1%;
         --card: 0 0% 100%;
         --card-foreground: 20 14.3% 4.1%;

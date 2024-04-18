@@ -6,6 +6,7 @@ import Table2 from "../components/Table2";
 import Loader from "@/components/ui/Loader";
 
 import { useFetchObrasReports } from "@/hooks/route";
+import List from "../components/List";
 
 export default function ReportsObras() {
 
@@ -18,8 +19,15 @@ export default function ReportsObras() {
 
   return (    
     <>
-     <Table2 reports={reports} />
-      
+    <div className="hidden sm:block">
+      <Table2 reports={reports} />
+
+    </div>
+
+    <div className="block sm:hidden">
+      <List reports={reports}/>
+
+    </div>
     </>
   )
 }
