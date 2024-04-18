@@ -14,7 +14,7 @@ export default function ReportsMantenimiento() {
   if (loading) {
       return <Loader />;
   }
-
+  console.log("reporteeees")
 
   return (    
     <>

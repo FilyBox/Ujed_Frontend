@@ -5,12 +5,14 @@ import { useUserData } from '@/hooks/user/route'; // Asegúrate de que useUserDa
 import { useUserUpdate } from '@/hooks/user/route';
 import Loader from '@/components/ui/Loader';
 import { toast } from 'sonner'
-import { Button, Skeleton,Input  } from '@nextui-org/react';
+import { Button, Skeleton,Input, CircularProgress  } from '@nextui-org/react';
 import { Card } from '@/components/ui/card';
+import { useSession } from "next-auth/react";
 
 const EditProfilePage = () => {
     const { userData, loading } = useUserData();
     const { updateUserData } = useUserUpdate();
+    const { update } = useSession();
 
     const [name, setName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -28,6 +30,7 @@ const EditProfilePage = () => {
             const result = await updateUserData({ name, last_name: lastName });
             console.log("Update successful", result);
             toast.success("Información actualizada!");
+            update({ name: name })
 
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
@@ -75,7 +78,13 @@ const EditProfilePage = () => {
                 Guardar Cambios
             </Button>
 
-            <div className="  animate-spin rounded-full border-t-2 border-r-2 border-blue-500 border-solid h-8 w-8"></div>
+            <CircularProgress  classNames={{
+            indicator: "stroke-[#cf112d]",
+            value: "text-3xl font-semibold ",
+          }}/>
+
+
+            {/* <div className="  animate-spin rounded-full border-t-2 border-r-2 border-blue-500 border-solid h-8 w-8"></div> */}
         </div>
 </Card>;
 

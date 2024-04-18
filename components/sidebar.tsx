@@ -1,14 +1,17 @@
 'use client'
+import { useSession } from "next-auth/react"; // Importa useSession de next-auth/react
 import { useSideBarToggle } from '@/hooks/use-sidebar-toggle';
 import SideBarMenuGroup from './sidebar-menu-group';
 import { SideBarLogo } from './sidebar-logo';
-import { BsList } from "react-icons/bs"; // Asegúrate de tener esta importación
 import classNames from 'classnames';
-import { useEffect, useState } from 'react';
-import { SIDENAV_ITEMS } from '@/app/menu_constants';
-
+import { useEffect, useMemo, useState } from 'react';
+import { SideNavItemGroup } from "@/types/type";
+import { FaHammer } from "react-icons/fa";
+import { BiSolidReport } from "react-icons/bi";
+import { IoConstruct } from "react-icons/io5";
 export const SideBar = () => {
     
+    const { data: session } = useSession();  // Usa useSession para acceder a la sesión actual
     const [mounted, setMounted] = useState(false);
     const { toggleCollapse, invokeToggleCollapse } = useSideBarToggle();
 
@@ -18,34 +21,77 @@ export const SideBar = () => {
             ["sm:w-[5.4rem] md:left-0 left-[-100%] md:block hidden"]: toggleCollapse,
         });
 
-    const toggleButton = () => {
-        invokeToggleCollapse();
-    };
-
     useEffect(() => setMounted(true), []);
+    
+    const menuItems = useMemo(() => {
+        let items:SideNavItemGroup[] = [];
+    
+        if (session?.user?.roles.includes('admin')) {
+            items = [
+                { title: "",
+                menuList: [{
+                    title: 'Entrada',
+                    path: '/dashboard/newreport',
+                    icon: <BiSolidReport size={20} />,
+                }] },
+    
+            {
+                title: "",
+                menuList: [{
+                    title: 'Obras',
+                    path: '/dashboard/reportsobras',
+                    icon: <FaHammer size={20} />,
+                }]
+            },
+    
+    {
+        title: "",
+        menuList: [{
+            title: 'Mantenimiento',
+            path: '/dashboard/reportsmantenimiento',
+            icon: <IoConstruct size={20} />,
+        }]
+    },
+            ];
+        } else if (session?.user?.roles.includes('mantenimiento')) {
+            items = [
+                {
+                    title: "",
+                    menuList: [{
+                        title: 'Mantenimiento',
+                        path: '/dashboard/reportsmantenimiento',
+                        icon: <IoConstruct size={20} />,
+                    }]
+                },
+            ];
+        } else if (session?.user?.roles.includes('obras')) {
+            items = [
+                {
+                    title: "",
+                    menuList: [{
+                        title: 'Obras',
+                        path: '/dashboard/reportsobras',
+                        icon: <FaHammer size={20} />,
+                    }]
+                },
+            ];
+        }
+    
+        return items;
+    }, [session?.user?.roles]);
 
     return (
         <aside className={asideStyle}>
-            <div className=''>
-            
+        <div className="sidebar-top relative px-3 flex flex-col gap-5 items-center p-5 justify-end">
+            {mounted && <SideBarLogo />}
+        </div>
+        <nav className="flex flex-col transition duration-300 ease-in-out">
+            <div className="flex flex-col px-6">
+                {menuItems.map((item, idx) => (
+                    <SideBarMenuGroup key={idx} menuGroup={item} />
+                ))}
             </div>
-            
-            <div className="sidebar-top relative px-3 flex flex-col gap-5 items-center p-5 justify-end">
-            
-
-                {mounted && <SideBarLogo />}
-                {/* <button onClick={toggleButton} className=" shrink-btn float-end bg-gray-400 text-sidebar-muted-foreground hover:bg-foreground hover:text-background rounded-md w-[30px] h-[30px] flex items-center justify-center shadow-md shadow-black/10  transition duration-300 ease-in-out">
-                    <BsList />
-                </button> */}
-            </div>
-            
-            <nav className="flex flex-col transition duration-300 ease-in-out">
-                <div className="flex flex-col px-6">
-                    {SIDENAV_ITEMS.map((item, idx) => {
-                        return <SideBarMenuGroup key={idx} menuGroup={item} />;
-                    })}
-                </div>
-            </nav>
-        </aside>
-    )
+        </nav>
+    </aside>
+    );
 }

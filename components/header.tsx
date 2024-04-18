@@ -14,12 +14,14 @@ import {
 } from "@nextui-org/react";
 import { useUserData } from "@/hooks/user/route";
 import { useRouter } from 'next/navigation';
+import { useMemo } from "react";
+import path from "path";
+import { NavBarItemGroup } from "@/types/type";
 
 
 export default function Header() {
     const { data: session, status } = useSession();
     const { toggleCollapse, invokeToggleCollapse } = useSideBarToggle();
-    const { userData, loading } = useUserData();
     const router = useRouter();
 
     const sidebarToggle = () => {
@@ -37,9 +39,75 @@ export default function Header() {
     const handleNavigation = (path: string) => {
         router.push(path);
     };
-    const userName = userData?.name || "Usuario";
 
-    const userNameDisplay = userData?.name ? (userData.name.length > 10 ? `${userData.name.substring(0, 10)}...` : userData.name) : "";
+    const menuItems = useMemo(() => {
+        let items:NavBarItemGroup[] = [];
+    
+        if (session?.user?.roles.includes('admin')) {
+            items = [
+                
+                {
+                    key: "Dashboard",
+                    path: '/dashboard'
+                   
+                },
+                {
+                    key: "Entrada",
+                    path: '/dashboard/newreport'
+                   
+                },
+                {
+                    key: "Mantenimiento",
+                    path: '/dashboard/reportsmantenimiento'
+                   
+                },
+                {
+                    key: "Obras",
+                    path: '/dashboard/reportsobras'
+                   
+                },
+            ];
+        } else if (session?.user?.roles.includes('mantenimiento')) {
+            items = [
+                {
+                    key: "Dashboard",
+                    path: '/dashboard'
+                   
+                },{
+                    key: "Mantenimiento",
+                    path: '/dashboard/reportsmantenimiento'
+                   
+                },
+            ];
+        } else if (session?.user?.roles.includes('obras')) {
+            items = [
+                {
+                    key: "Dashboard",
+                    path: '/dashboard'
+                   
+                },
+                {
+                    key: "Obras",
+                    path: '/dashboard/reportsobras'
+                   
+                },
+            ];
+        }else if (session?.user?.roles.includes('user')) {
+            items = [
+                {
+                    key: "dashboard",
+                    path: '/dashboard/'
+                   
+                },
+            ];
+        }
+    
+        return items;
+    }, [session?.user?.roles]);
+
+
+    const userNameDisplay = session?.user?.name ? (session?.user?.name.length > 10 ? `${session?.user?.name.substring(0, 10)}...` : session?.user?.name) : "Usuario";
+
 
       return (
         <header className={headerStyle}>
@@ -49,22 +117,23 @@ export default function Header() {
                 </button>
 
                 <div className="block md:hidden order-1 ml-3">
-                <Dropdown>
-                <DropdownTrigger>
-                        <Button 
-                        variant="bordered" 
-                        >
-                    <BsList />
-                        </Button>
-                    </DropdownTrigger>
-                        <DropdownMenu aria-label="Static Actions" className="">
-                            <DropdownItem key="newReports" onClick={() => handleNavigation('/dashboard/newreport')}>Todos los reportes</DropdownItem>
-                            <DropdownItem key="Dashboard" onClick={() => handleNavigation('/dashboard')}>Dashboard</DropdownItem>
-                            <DropdownItem key="Obras" onClick={() => handleNavigation('/dashboard/reportsobras')}>Reportes de Obras</DropdownItem>
-                            <DropdownItem key="Mantenimiento" onClick={() => handleNavigation('/dashboard/reportsmantenimiento')}>Reportes de mantenimiento</DropdownItem>
-
-                        </DropdownMenu>
-                    </Dropdown>
+         
+                    <Dropdown>
+                    <DropdownTrigger>
+                            <Button 
+                            variant="bordered" 
+                            >
+                        <BsList />
+                            </Button>
+                        </DropdownTrigger>
+                            <DropdownMenu aria-label="Static Actions" className="">
+                            {menuItems.map((item, key) => (
+                                <DropdownItem key={key} onClick={() => handleNavigation(item.path)}>{item.key}</DropdownItem>
+                            ))}
+                               
+                            </DropdownMenu>
+                        </Dropdown>
+             
                 </div>
 
                 
@@ -74,7 +143,7 @@ export default function Header() {
                     <Dropdown>
                         <DropdownTrigger>
                             <Button className="rounded-full w-fit px-0" variant="light">
-                                <Chip className="px-1.5 text-black text-xl italic font-light py-3 w-fit rounded-full bg-gray-300">{userNameDisplay}</Chip>
+                                <Chip className="px-1.5 text-black text-xl italic font-light py-3 w-fit rounded-full bg-gray-300">{session?.user?.name }</Chip>
                                 <Avatar showFallback src='/Images/Image_UserPlaceholder.png' size="sm" className="" />
                             </Button>
                         </DropdownTrigger>

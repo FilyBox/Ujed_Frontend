@@ -11,6 +11,11 @@ export type SideNavItemGroup = {
   menuList: SideNavItem[]
 }
 
+export type NavBarItemGroup = {
+  key: string;
+  path: string;
+}
+
 export interface UpdateUserData {
   name?: string;
   last_name?: string;

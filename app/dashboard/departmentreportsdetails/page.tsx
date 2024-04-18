@@ -13,16 +13,7 @@ export default function ReportDetails({}) {
 
   const searchParams = useSearchParams()
   const search = searchParams.get('id')
-  const department = searchParams.get('department')
-
-  const [reports, setReport] = useState<ReportProps | null>(null);
   const { report, loading, error } = search ? useFetchSingleReport(search) : { report: null, loading: false, error: null };
-  const { data: session, status } = useSession();
-
-  if (session){
-    
-    console.log(session.user.roles)
-  }
 
   if (loading) {
     return <Loader />;
