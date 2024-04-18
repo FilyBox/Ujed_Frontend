@@ -3,7 +3,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { useUserData } from '@/hooks/user/route';
-import { Button, Card, Skeleton } from '@nextui-org/react';
+import { Button, Card, CircularProgress, Skeleton } from '@nextui-org/react';
 import { toast } from 'sonner';
 import { useDeleteUser } from '@/hooks/user/route';
 
@@ -64,8 +64,10 @@ const ProfilePage = () => {
                 </Button>
                 </div>
 
-                <div className="  animate-spin rounded-full border-t-2 border-r-2 border-blue-500 border-solid h-8 w-8"></div>
-
+                <CircularProgress  classNames={{
+            indicator: "stroke-[#cf112d]",
+            value: "text-3xl font-semibold ",
+          }}/>
                 
             </div>
         </Card>;
@@ -110,8 +112,10 @@ const ProfilePage = () => {
         </Button>
         </div>
 
-        <div className="  animate-spin rounded-full border-t-2 border-r-2 border-blue-500 border-solid h-8 w-8"></div>
-
+        <CircularProgress  classNames={{
+            indicator: "stroke-[#cf112d]",
+            value: "text-3xl font-semibold ",
+          }}/>
         
     </div>
 </Card>;;

@@ -261,6 +261,7 @@ const Table2: React.FC<Table2Props> = ({ reports }) => {
               {cellValue}
             </Chip>
                     {
+                      
                 // Muestra el Dropdown solo si el usuario es admin
                 isAdminDepartment && (
                   <Dropdown aria-label="Department options">

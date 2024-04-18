@@ -5,7 +5,7 @@ import { useUserData } from '@/hooks/user/route'; // Asegúrate de que useUserDa
 import { useUserUpdate } from '@/hooks/user/route';
 import Loader from '@/components/ui/Loader';
 import { toast } from 'sonner'
-import { Button, Skeleton,Input  } from '@nextui-org/react';
+import { Button, Skeleton,Input, CircularProgress  } from '@nextui-org/react';
 import { Card } from '@/components/ui/card';
 import { useSession } from "next-auth/react";
 
@@ -78,7 +78,13 @@ const EditProfilePage = () => {
                 Guardar Cambios
             </Button>
 
-            <div className="  animate-spin rounded-full border-t-2 border-r-2 border-blue-500 border-solid h-8 w-8"></div>
+            <CircularProgress  classNames={{
+            indicator: "stroke-[#cf112d]",
+            value: "text-3xl font-semibold ",
+          }}/>
+
+
+            {/* <div className="  animate-spin rounded-full border-t-2 border-r-2 border-blue-500 border-solid h-8 w-8"></div> */}
         </div>
 </Card>;
 
