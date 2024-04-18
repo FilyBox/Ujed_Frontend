@@ -7,10 +7,12 @@ import Loader from '@/components/ui/Loader';
 import { toast } from 'sonner'
 import { Button, Skeleton,Input  } from '@nextui-org/react';
 import { Card } from '@/components/ui/card';
+import { useSession } from "next-auth/react";
 
 const EditProfilePage = () => {
     const { userData, loading } = useUserData();
     const { updateUserData } = useUserUpdate();
+    const { update } = useSession();
 
     const [name, setName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -28,6 +30,7 @@ const EditProfilePage = () => {
             const result = await updateUserData({ name, last_name: lastName });
             console.log("Update successful", result);
             toast.success("Información actualizada!");
+            update({ name: name })
 
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
