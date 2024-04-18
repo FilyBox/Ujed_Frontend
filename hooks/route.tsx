@@ -364,6 +364,70 @@ export const updateReportStatus = async (reportId:string, newStatus:string, toke
   }
 };
 
+
+export const useFetchReportsByRole = () => {
+  const { data: session, status } = useSession();
+  const [reports, setReports] = useState<ReportProps[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchReports = async () => {
+      if (!session) return;
+
+      setLoading(true);
+      let url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/reports`;
+
+      // Define the URL based on the user's roles
+      if (session.user.roles.includes('admin')) {
+        url += '/?limit=999';}
+      else if (session.user.roles.includes('mantenimiento')) {
+        url += '/department/mantenimiento/?limit=999';
+      } else if (session.user.roles.includes('obras')) {
+        url += '/department/obras/?limit=999';
+      }
+
+      try {
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.user.token}`,
+          },
+        });
+
+        
+    if (response.status === 401) {
+      signOut();  // Sign out if unauthorized
+      toast.error("La sesión ha caducado");
+      return;
+  }
+
+  if (response.status === 403) {
+      toast.error("No tienes los permisos para esta accion");
+      return;
+  }
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setReports(data);
+      } catch (error) {
+        console.error('Error fetching reports:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReports();
+  }, [session, status]);
+
+  return { reports, loading, error };
+};
+
+
 // Update el departament
 
 export const updateReportDepartment = async (reportId:string, newDepartment:string, token:string) => {

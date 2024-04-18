@@ -34,16 +34,15 @@ import { toast } from 'sonner'
 import { useUserData } from "@/hooks/user/route";
 import { FiSearch } from "react-icons/fi";
 import { updateReportStatus, updateReportDepartment } from "@/hooks/route";
+import classNames from "classnames";
 
 
 const INITIAL_VISIBLE_COLUMNS = ["title", "description", "status", "actions","department", "name", "created_at"];
-
 const Table2: React.FC<Table2Props> = ({ reports }) => {
   const { data: session } = useSession();
-
   const [filterValue, setFilterValue] = useState("");
   const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set([]));
-  const [visibleColumns, setVisibleColumns] = useState<Selection>(new Set(INITIAL_VISIBLE_COLUMNS));
+  const [visibleColumns, setVisibleColumns] = useState<Selection>("all");
   const [statusFilter, setStatusFilter] = useState<Selection>("all");
   const [departmentFilter, setDepartmentFilter] = useState<Selection>("all");
 
@@ -124,6 +123,8 @@ const Table2: React.FC<Table2Props> = ({ reports }) => {
     return columns.filter((column) => Array.from(visibleColumns).includes(column.uid));
   }, [visibleColumns]);
 
+  
+
   // Preprocesar reportes para manejar valores nulos en el departamento
   const preprocessedReports = useMemo(() => {
     return reports.map(report => ({
@@ -131,6 +132,8 @@ const Table2: React.FC<Table2Props> = ({ reports }) => {
       department: report.department || "Sin asignar" // Asigna "Sin asignar" si department es null
     }));
   }, [reports]);
+
+
 
   const filteredItems = useMemo(() => {
     let filteredReports = [...preprocessedReports];
@@ -187,83 +190,102 @@ const Table2: React.FC<Table2Props> = ({ reports }) => {
           </div>
         );
       case "status":
+        const isAdminStatus = session?.user?.roles?.includes('admin');
+
         return (
           <div className="flex justify-center items-center">
             <Chip className="capitalize" color={statusColorMap[report.status]} size="sm" variant="flat">
             {cellValue}
           </Chip>
-            <Dropdown  aria-label="Status options">
-            <DropdownTrigger aria-label="Show status options">
-                <Button isIconOnly size="sm" variant="light" aria-label="status chevron">
-                  <ChevronDownIcon className="text-small" />
-                </Button>
-              </DropdownTrigger>
-              <DropdownMenu aria-label="option choices">
-                {statusOptions.map(status => (
-                  <DropdownItem key={status.name} onClick={() => handleStatusChange(report.id, status.name)}>
-                    {status.name}
-                  </DropdownItem>
-                ))}
-              </DropdownMenu>
-            </Dropdown>
+
+
+            {
+        // Muestra el Dropdown solo si el usuario es admin
+        isAdminStatus && (
+          <Dropdown  aria-label="Status options">
+          <DropdownTrigger aria-label="Show status options">
+              <Button isIconOnly size="sm" variant="light" aria-label="status chevron">
+                <ChevronDownIcon className="text-small" />
+              </Button>
+            </DropdownTrigger>
+            <DropdownMenu aria-label="option choices">
+              {statusOptions.map(status => (
+                <DropdownItem key={status.name} onClick={() => handleStatusChange(report.id, status.name)}>
+                  {status.name}
+                </DropdownItem>
+              ))}
+            </DropdownMenu>
+          </Dropdown>
+        )
+      }
           </div>
 
           
         );
+        
+        case "title":
+          const displayTitle = report.title.split(' - ')[0]; // Divide el título en ' - ' y toma el primer elemento
+  
+          const titleDisplay = displayTitle ? (displayTitle.length > 150 ? `${displayTitle.substring(0, 150)}...` : displayTitle) : "";
+          return (
+            
+            <div className="flex flex-col min-w-52 justify-center items-start">
+              <p className="capitalize"> {titleDisplay}</p>
+            </div>   
+  
+            
+          );
+
+          case "description":
+    
+            const DescriptionDisplay =  report.description ? ( report.description.length > 150 ? `${ report.description.substring(0, 150)}...` :  report.description) : "";
+            var btnGroupClasses = classNames(
+              "flex flex-col justify-start items-start",
+              {
+                'min-w-52': report.description.length > 150,
+              }
+            );
+            return (
+            <div className={btnGroupClasses} >
+              <p className="capitalize"> {DescriptionDisplay}</p>
+            </div>          
+            );
 
         case "department":
+
+        const isAdminDepartment = session?.user?.roles?.includes('admin');
+
           return (
             <div className="flex justify-center items-center">
               <Chip className="capitalize" color={departmentColorMap[report.department]} size="sm" variant="flat">
               {cellValue}
             </Chip>
-              <Dropdown  aria-label="Status options">
-              <DropdownTrigger aria-label="Show status options">
-                  <Button isIconOnly size="sm" variant="light" aria-label="status chevron">
-                    <ChevronDownIcon className="text-small" />
-                  </Button>
-                </DropdownTrigger>
-                <DropdownMenu aria-label="option choices">
-                  {departmentOptionsNoNull.map(department => (
-                    <DropdownItem key={department.name} onClick={() => handleDeparmentChange(report.id, department.name)}>
-                      {department.name}
-                    </DropdownItem>
-                  ))}
-                </DropdownMenu>
-              </Dropdown>
+                    {
+                // Muestra el Dropdown solo si el usuario es admin
+                isAdminDepartment && (
+                  <Dropdown aria-label="Department options">
+                    <DropdownTrigger aria-label="Show department options">
+                      <Button isIconOnly size="sm" variant="light" aria-label="department chevron">
+                        <ChevronDownIcon className="text-small" />
+                      </Button>
+                    </DropdownTrigger>
+                    <DropdownMenu aria-label="option choices">
+                      {departmentOptionsNoNull.map(department => (
+                        <DropdownItem key={department.name} onClick={() => handleDeparmentChange(report.id, department.name)}>
+                          {department.name}
+                        </DropdownItem>
+                      ))}
+                    </DropdownMenu>
+                  </Dropdown>
+                )
+              }
             </div>
   
             
           );
       case "actions":
-        return (
-          // <div className="relative flex justify-end items-center gap-2" aria-labelledby="group1">
-          //   <Link href={{
-          //           pathname: '/dashboard/reportsdetails',
-          //           query:{id: report.id } 
-          //         }}>View</Link>
-          //   <Dropdown aria-label="Action options">
-          //     <DropdownTrigger aria-label="Show actions">
-          //       <Button isIconOnly size="sm" variant="light" aria-label="More actions">
-          //         <ChevronDownIcon className="text-small" />
-          //       </Button>
-          //     </DropdownTrigger>
-          //     <DropdownMenu aria-label="Action choices">
-          //       <DropdownItem >
-                  
-
-                  
-          //       <Link className="min-w-2.5 bg-slate-500" href={{
-          //           pathname: '/dashboard/reportsdetails',
-          //           query:{id: report.id } 
-          //         }}>Ver</Link>
-          //       </DropdownItem>
-          //       <DropdownItem>Editar</DropdownItem>
-          //       <DropdownItem>Eliminar</DropdownItem>
-          //     </DropdownMenu>
-          //   </Dropdown>
-          // </div>
-          <div className="relative flex items-center justify-center">
+        return ( 
+         <div className="relative flex items-center justify-center">
           <Tooltip content="Ver">
           
             <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
@@ -451,13 +473,12 @@ const Table2: React.FC<Table2Props> = ({ reports }) => {
   return (
     <Table
       aria-label="table with custom cells, pagination and sorting"
-      isHeaderSticky
       bottomContent={bottomContent}
       bottomContentPlacement="outside"
       classNames={{
         wrapper: "",
       }}
-      className="w-full h-full"
+      className="w-full h-full "
       // selectedKeys={selectedKeys}
       // selectionMode="multiple"
       sortDescriptor={sortDescriptor}
@@ -477,7 +498,7 @@ const Table2: React.FC<Table2Props> = ({ reports }) => {
           </TableColumn>
         )}
       </TableHeader>
-      <TableBody emptyContent={"Reportes no encontrados"}>
+      <TableBody className="" emptyContent={"Reportes no encontrados"}>
         {sortedItems.map((report, index) => (
           <TableRow key={`${report.id}-${index}`}>
             {headerColumns.map((column) => (

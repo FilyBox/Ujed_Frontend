@@ -44,6 +44,14 @@ const LoginPage = () => {
       return;
     }
 
+    if (responseNextAuth?.ok) {
+      toast.success("Iniciando Sesión");
+      router.push("/dashboard");
+
+      return;
+  }
+
+
 
     router.push("/dashboard");
   };

@@ -2,107 +2,44 @@
 'use client';
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Loader from '@/components/ui/Loader';
-import { DashboardFetchReports } from '../../hooks/route';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useFetchReportsByRole } from '@/hooks/route';
 
 export default function Dashboard() {
-  const { loading, reports, error } = DashboardFetchReports();
+  const { reports, loading, error } = useFetchReportsByRole();
 
   if (loading) return <Loader />;
+  if (error) return <p>Errors occurred: {error}</p>;
 
-  if (error) return <Loader />;
+  const reportCount = (status: string) => reports.filter(report => report.status === status).length;
+
 
   return (
     <>
       <h2 className="text-3xl font-bold tracking-tight my-4">Dashboard</h2>
       <div className="flex-1 space-y-4">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {/* Tarjeta de Total de Reportes */}
           <Card className='col-span-2'>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-2xl font-medium">
-                Total De Reportes
-              </CardTitle>
-              <div className="text-2xl font-bold">
-                {reports.length}
-              </div>
+            <CardHeader>
+              <CardTitle>Total De Reportes</CardTitle>
+              <div>{reports.length}</div>
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-muted-foreground">
-                Total de reportes disponibles
-              </p>
+              Total de reportes disponibles
             </CardContent>
           </Card>
-
-          {/* Tarjeta de Reportes Asignados */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Reportes Asignados
-              </CardTitle>
-              <div className="text-2xl font-bold">
-                {reports.filter(report => report.status === 'asignado').length}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xs text-muted-foreground">
-                Número de reportes asignados
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Tarjeta de Reportes en Espera */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Reportes en Espera
-              </CardTitle>
-              <div className="text-2xl font-bold">
-                {reports.filter(report => report.status === 'en espera').length}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xs text-muted-foreground">
-                Número de reportes en espera
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Tarjeta de Reportes Resueltos */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Reportes Resueltos
-              </CardTitle>
-              <div className="text-2xl font-bold">
-                {reports.filter(report => report.status === 'resuelto').length}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xs text-muted-foreground">
-                Número de reportes resueltos
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Tarjeta de Reportes Descartados */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Reportes Descartados
-              </CardTitle>
-              <div className="text-2xl font-bold">
-                {reports.filter(report => report.status === 'descartado').length}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xs text-muted-foreground">
-                Número de reportes descartados
-              </p>
-            </CardContent>
-          </Card>
-
+          {['asignado', 'en espera', 'resuelto', 'descartado'].map(status => (
+            <Card key={status}>
+              <CardHeader>
+                <CardTitle>Reportes {status}</CardTitle>
+                <div>{reportCount(status)}</div>
+              </CardHeader>
+              <CardContent>
+                Número de reportes {status}
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
     </>

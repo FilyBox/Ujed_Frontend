@@ -11,11 +11,10 @@ import { useFetchReports } from "@/hooks/route";
 export default function NewReport() {
 
   const { reports, loading } = useFetchReports();
-
+  const department = "ninguno";
   if (loading) {
       return <Loader />;
   }
-
 
   return (    
     <>
