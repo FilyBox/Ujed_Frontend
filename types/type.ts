@@ -41,7 +41,7 @@ export interface UserProps {
 export interface LocationProps {
   faculty: string;
   building: string;
-  clasroom: string;
+  classroom: string;
 
 }
 

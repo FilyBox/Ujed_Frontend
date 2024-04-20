@@ -23,7 +23,6 @@ export default function ReportDetails({}) {
 
   if (session){
     
-    console.log(session.user.roles)
   }
 
   if (loading) {
