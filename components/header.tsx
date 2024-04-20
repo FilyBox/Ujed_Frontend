@@ -144,7 +144,7 @@ export default function Header() {
                     <Dropdown>
                         <DropdownTrigger>
                             <Button className="rounded-full w-fit px-0" variant="light">
-                                <Chip className="px-1.5 text-black text-xl italic font-light py-3 w-fit rounded-full bg-gray-300">{session?.user?.name }</Chip>
+                                <Chip className="px-1.5 text-black text-xl italic font-light py-3 w-fit rounded-full bg-gray-300">{session?.user?.name ? (session?.user?.name.length > 10 ? `${session?.user?.name.substring(0, 10)}...` : session?.user?.name) : "Usuario"}</Chip>
                                 <Avatar showFallback src='/Images/Image_UserPlaceholder.png' size="sm" className="" />
                             </Button>
                         </DropdownTrigger>

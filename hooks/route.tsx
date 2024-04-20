@@ -199,6 +199,11 @@ export const useFetchReports = () => {
 
           const data = await response.json();
           setReports(data);
+          if (data.length === 0) {
+            toast.error("No hay reportes disponibles");
+
+            return;
+          }
       } catch (error:any) {
           setError(error.message);
           console.error('Error fetching reports:', error);
@@ -208,7 +213,7 @@ export const useFetchReports = () => {
       }
   }
 
-  return { reports, loading, error };
+  return { reports, loading, error, fetchReports };
 };
 
 //Mantenimiento reports
@@ -255,9 +260,16 @@ export const useFetchMantenimientoReports = () => {
           if (!response.ok) {
               throw new Error('Failed to fetch reports');
           }
+          
 
           const data = await response.json();
           setReports(data);
+
+          if (data.length === 0) {
+            toast.error("No hay reportes disponibles");
+
+            return;
+          }
       } catch (error:any) {
           setError(error.message);
           console.error('Error fetching reports:', error);
@@ -267,7 +279,7 @@ export const useFetchMantenimientoReports = () => {
       }
   }
 
-  return { reports, loading, error };
+  return { reports, loading, error, fetchReports };
 };
 
 export const useFetchObrasReports = () => {
@@ -316,6 +328,12 @@ export const useFetchObrasReports = () => {
 
           const data = await response.json();
           setReports(data);
+
+          if (data.length === 0) {
+            toast.error("No hay reportes disponibles");
+
+            return;
+          }
       } catch (error:any) {
           setError(error.message);
           console.error('Error fetching reports:', error);
@@ -342,7 +360,7 @@ export const updateReportStatus = async (reportId:string, newStatus:string, toke
 
     if (response.status === 401) {
       signOut();  // Sign out if unauthorized
-      toast.error("La sesión ha caducado");
+      toast.error("La sesión ha caducado",{ duration: 3000 });
       return;
   }
 
@@ -350,6 +368,12 @@ export const updateReportStatus = async (reportId:string, newStatus:string, toke
       toast.error("No tienes los permisos para esta accion");
       return;
   }
+  if (response.ok) {
+    toast.success("Actualizado");
+    return;
+}
+
+
     const data = await response.json();
     if (!response.ok) {
       throw new Error(data.message || 'Failed to update report');
@@ -359,6 +383,8 @@ export const updateReportStatus = async (reportId:string, newStatus:string, toke
     console.log(newStatus)
     return data;
   } catch (error) {
+    toast.error("Error: No fue posible actualizar",{ duration: 3000 });
+
     console.error('Error updating report status:', error);
     throw error;
   }
@@ -452,6 +478,12 @@ export const updateReportDepartment = async (reportId:string, newDepartment:stri
       return;
   }
 
+  if (response.ok) {
+    toast.success("Actualizado");
+    return;
+}
+
+
     const data = await response.json();
     if (!response.ok) {
       throw new Error(data.message || 'Failed to update department');
@@ -461,6 +493,8 @@ export const updateReportDepartment = async (reportId:string, newDepartment:stri
     console.log(newDepartment)
     return data;
   } catch (error) {
+    toast.error("Error: No fue posible actualizar",{ duration: 3000 });
+
     console.error('Error updating report department:', error);
     throw error;
   }

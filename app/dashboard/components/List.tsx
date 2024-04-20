@@ -10,9 +10,8 @@ import { updateReportDepartment, updateReportStatus } from "@/hooks/route";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { EyeIcon } from "./EyeIcon";
 
-const List: React.FC<Table2Props> = ({ reports }) => {
+const List: React.FC<Table2Props> = ({ reports, onDataChange }) => {
   const [filterValue, setFilterValue] = useState("");
   const { data: session } = useSession();
   const isAdminStatus = session?.user?.roles?.includes('admin');
@@ -44,11 +43,10 @@ const List: React.FC<Table2Props> = ({ reports }) => {
         </div>,
         { duration: 3000 }
       );
-      setTimeout(() => {
-        // Recargar la página
-        window.location.reload();
-        
-      }, 3000); // Sincronizado con la duración del toast
+      if (onDataChange) {
+        onDataChange();
+      }
+
     } catch (error) {
       console.error('Failed to update report:', error);
       toast.error(
@@ -75,11 +73,10 @@ const List: React.FC<Table2Props> = ({ reports }) => {
         </div>,
         { duration: 3000 }
       );
-      setTimeout(() => {
-        // Recargar la página
-        window.location.reload();
-        
-      }, 3000); // Sincronizado con la duración del toast
+      if (onDataChange) {
+        onDataChange();
+      }
+
     } catch (error) {
       console.error('Failed to update report:', error);
       toast.error(
@@ -90,12 +87,13 @@ const List: React.FC<Table2Props> = ({ reports }) => {
       );
     }
   };
+
   return (
     <div>
    
       <Input
             isClearable
-            className="w-full sm:max-w-[44%]"
+            className="w-full sm:max-w-[44%] p-2"
             placeholder="Buscar por nombre..."
             startContent={<FiSearch/>}
             value={filterValue}
@@ -107,12 +105,14 @@ const List: React.FC<Table2Props> = ({ reports }) => {
         className="p-2 flex flex-col gap-1 w-full"
         variant="splitted"      >
         {filteredReports.map((report: ReportPropsTable) => (
+       
           <AccordionItem
             key={report.id}
             title={report.title.split(' - ')[0]}
             subtitle={
               <div className="text-sm flex flex-col gap-2">
-                Ubicación: {report.title.split(' - ')[1]}
+                <p className="text-sm text-gray-500">Fecha de creación: {new Date(report.created_at).toLocaleDateString()}</p>
+                <p className="text-sm text-gray-500">Fecha de actualización: {new Date(report.updated_at).toLocaleDateString()}</p>
                 <div>
                     <Chip className="capitalize" color={departmentColorMap[report.department]} size="sm" variant="flat">
                     {report.department || "Sin asignar"}
@@ -182,6 +182,8 @@ const List: React.FC<Table2Props> = ({ reports }) => {
 
                 </section>
 
+                <p>{report.description ? ( report.description.length > 150 ? `${ report.description.substring(0, 150)}...` :  report.description) : "Sin descripción"}</p>
+
 
                 <Link href={{
                             pathname: '/dashboard/reportsdetails',
@@ -192,9 +194,7 @@ const List: React.FC<Table2Props> = ({ reports }) => {
                             Ver detalles
                 </Link>
 
-                <p className="text-sm text-gray-500">Fecha de creación: {new Date(report.created_at).toLocaleDateString()}</p>
-                <p className="text-sm text-gray-500">Fecha de actualización: {new Date(report.updated_at).toLocaleDateString()}</p>
-                <p>{report.description || "Sin descripción"}</p>
+                
 
             </div>
 
