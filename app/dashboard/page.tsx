@@ -21,9 +21,9 @@ export default function Dashboard() {
       <div className="flex-1 space-y-4">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card className='col-span-2'>
-            <CardHeader>
-              <CardTitle>Total De Reportes</CardTitle>
-              <div>{reports.length}</div>
+            <CardHeader  className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-xl font-medium">Total de reportes</CardTitle>
+              <div className="text-2xl font-bold">{reports.length}</div>
             </CardHeader>
             <CardContent>
               Total de reportes disponibles
@@ -31,11 +31,11 @@ export default function Dashboard() {
           </Card>
           {['asignado', 'en espera', 'resuelto', 'descartado'].map(status => (
             <Card key={status}>
-              <CardHeader>
-                <CardTitle>Reportes {status}</CardTitle>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Reportes {status}</CardTitle>
                 <div>{reportCount(status)}</div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="text-xs text-muted-foreground">
                 Número de reportes {status}
               </CardContent>
             </Card>

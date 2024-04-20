@@ -139,12 +139,12 @@ const Content = ({ report }: { report: ReportProps }) => {
 
         <div className="flex flex-col w-full   h-full">
           <p className="text-xl text-black">Ubicación</p>
-          <Textarea isReadOnly variant="bordered" placeholder="Estado del reporte" className="h-full w-full" defaultValue={report.location}  />
+          <Textarea isReadOnly variant="bordered" placeholder="Estado del reporte" className="h-full w-full" defaultValue={`Facultad: ${report.location.faculty || ''}\nEdificio: ${report.location.building|| ''}\nAula: ${report.location.classroom|| ''}`}  />
         </div>
 
         <div className="flex flex-col w-full   h-full">
           <p className="text-xl text-black">Departamento</p>
-          <Textarea isReadOnly variant="bordered" placeholder="Estado del reporte" className="h-full w-full" defaultValue={report.department}  />
+          <Textarea isReadOnly variant="bordered" placeholder="Estado del reporte" className="h-full w-full" defaultValue={report.department|| 'Sin asignar'}  />
         </div>
 
         <div className=" h-full flex flex-col w-full">

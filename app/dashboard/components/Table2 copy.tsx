@@ -19,15 +19,10 @@ import {
   Selection,
   SortDescriptor,
   Tooltip,
-  Autocomplete,
-  AutocompleteSection,
-  AutocompleteItem,
-  Select,
-  SelectItem
 } from "@nextui-org/react";
 import { ChevronDownIcon } from "./ChevronDownIcon";
 import { departmentColorMap,statusColorMap } from "./consts";
-import { ReportPropsTable,Table2Props, ReportProps } from "@/types/type";
+import { ReportPropsTable,Table2Props } from "@/types/type";
 import { columns, statusOptions, departmentOptions, departmentOptionsNoNull } from "./data";
 import { capitalize } from "./utils";
 import Link from "next/link";
@@ -38,14 +33,13 @@ import { FiSearch } from "react-icons/fi";
 import { updateReportStatus, updateReportDepartment } from "@/hooks/route";
 import classNames from "classnames";
 
-const Table2: React.FC<Table2Props> = ({ reports, onDataChange }) => {
+const Table22: React.FC<Table2Props> = ({ reports }) => {
   const { data: session } = useSession();
   const [filterValue, setFilterValue] = useState("");
   const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set([]));
   const [visibleColumns, setVisibleColumns] = useState<Selection>("all");
   const [statusFilter, setStatusFilter] = useState<Selection>("all");
   const [departmentFilter, setDepartmentFilter] = useState<Selection>("all");
-  const [departmentChanges, setDepartmentChanges] = useState<Record<string, string>>({});
 
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({
@@ -63,24 +57,28 @@ const Table2: React.FC<Table2Props> = ({ reports, onDataChange }) => {
     }
     try {
       const updatedReport = await updateReportStatus(reportId, newStatus, session.user.token);
-
-      if (onDataChange) {
-        onDataChange();
-      }
-      // toast.success(
-      //   <div className="success alert-success">
-      //     Estatus actualizado
-      //   </div>,
-      //   { duration: 3000 }
-      // );
-
-
+      console.log('Report updated successfully:', updatedReport);
+      console.log("ID:"+reportId)
+      toast.success(
+        <div className="success alert-success">
+          Estatus actualizado
+        </div>,
+        { duration: 3000 }
+      );
+      setTimeout(() => {
+        // Recargar la página
+        window.location.reload();
+        
+      }, 3000); // Sincronizado con la duración del toast
     } catch (error) {
       console.error('Failed to update report:', error);
-     
+      toast.error(
+        <div className="alert alert-danger">
+          No fue posible actualizar el estatus
+        </div>,
+        { duration: 3000 }
+      );
     }
-
-
   };
 
   const handleDeparmentChange = async (reportId:string, newDepartment:string) => {
@@ -90,21 +88,28 @@ const Table2: React.FC<Table2Props> = ({ reports, onDataChange }) => {
     }
     try {
       const updatedDepartment = await updateReportDepartment(reportId, newDepartment, session.user.token);
-      setDepartmentChanges(prev => ({ ...prev, [reportId]: newDepartment }));
-
       console.log('Report updated successfully:', updatedDepartment);
       console.log("ID:"+reportId)
-
-      if (onDataChange) {
-        onDataChange();
-      }
-
-
+      toast.success(
+        <div className="success alert-success">
+          Estatus actualizado
+        </div>,
+        { duration: 3000 }
+      );
+      setTimeout(() => {
+        // Recargar la página
+        window.location.reload();
+        
+      }, 3000); // Sincronizado con la duración del toast
     } catch (error) {
       console.error('Failed to update report:', error);
-
+      toast.error(
+        <div className="alert alert-danger">
+          No fue posible actualizar el estatus
+        </div>,
+        { duration: 3000 }
+      );
     }
-
   };
 
   const headerColumns = useMemo(() => {
@@ -174,9 +179,9 @@ const Table2: React.FC<Table2Props> = ({ reports, onDataChange }) => {
     switch (columnKey) {
       case "created_at":
         return (
-          <div className="flex flex-col justify-center items-start text-sm w-full">
-            <p className="text-bold text-tiny capitalize text-default-400">{new Date(report.created_at).toLocaleDateString()} </p>
-            <p className="text-bold text-tiny capitalize text-default-400">{new Date(report.updated_at).toLocaleDateString()} </p>
+          <div className="flex flex-col justify-center items-center text-sm">
+            <p className="text-bold text-tiny capitalize text-default-400"> {report.created_at}</p>
+            <p className="text-bold text-tiny capitalize text-default-400"> {report.updated_at}</p>
           </div>
         );
       case "status":
@@ -244,10 +249,9 @@ const Table2: React.FC<Table2Props> = ({ reports, onDataChange }) => {
         case "department":
 
         const isAdminDepartment = session?.user?.roles?.includes('admin');
-        const currentDepartment = departmentChanges[report.id] || report.department || 'Unassigned';
 
           return (
-            <div key={report.id} className="flex justify-center items-center">
+            <div className="flex justify-center items-center">
               <Chip className="capitalize" color={departmentColorMap[report.department]} size="sm" variant="flat">
               {cellValue}
             </Chip>
@@ -255,55 +259,23 @@ const Table2: React.FC<Table2Props> = ({ reports, onDataChange }) => {
                       
                 // Muestra el Dropdown solo si el usuario es admin
                 isAdminDepartment && (
-
                   <Dropdown aria-label="Department options">
-                  <DropdownTrigger aria-label="Show department options">
-                    <Button isIconOnly size="sm" variant="light" aria-label="department chevron">
-                      <ChevronDownIcon className="text-small" />
-                    </Button>
-                  </DropdownTrigger>
-                  <DropdownMenu aria-label="option choices" selectedKeys={selectedKeys}
-                   >
-                    {departmentOptionsNoNull.map(department => (
-                      <DropdownItem key={department.name} onClick={() => handleDeparmentChange(report.id, department.name)}>
-                        {department.name}
-                      </DropdownItem>
-                    ))}
-                  </DropdownMenu>
-                </Dropdown>
-              //     <Select
-              //     color={departmentColorMap[currentDepartment || report.department]} size="sm"
-              //   aria-label="Select Department"
-              //   placeholder={cellValue}
-              // >
-              //   {departmentOptionsNoNull.map(department => (
-              //     <SelectItem key={`${report.id}-${department.name}`} value={department.name} onClick={() => handleDeparmentChange(report.id, department.name)}>
-              //       {department.name}
-              //     </SelectItem>
-              //   ))}
-              // </Select>
-                  
-                ) 
-                
-
-                
+                    <DropdownTrigger aria-label="Show department options">
+                      <Button isIconOnly size="sm" variant="light" aria-label="department chevron">
+                        <ChevronDownIcon className="text-small" />
+                      </Button>
+                    </DropdownTrigger>
+                    <DropdownMenu aria-label="option choices">
+                      {departmentOptionsNoNull.map(department => (
+                        <DropdownItem key={department.name} onClick={() => handleDeparmentChange(report.id, department.name)}>
+                          {department.name}
+                        </DropdownItem>
+                      ))}
+                    </DropdownMenu>
+                  </Dropdown>
+                )
               }
-
-{
-                      
-                      // Muestra el Dropdown solo si el usuario es admin
-                      !isAdminDepartment && (
-                        <Chip className="capitalize" color={departmentColorMap[report.department]} size="sm" variant="flat">
-                        {cellValue}
-                      </Chip>
-                        
-                      ) 
-                      
-      
-                      
-                    }
-
-                          </div>
+            </div>
   
             
           );
@@ -539,4 +511,4 @@ const Table2: React.FC<Table2Props> = ({ reports, onDataChange }) => {
   );
 };
 
-export default Table2;
+export default Table22;
