@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { Accordion, AccordionItem, Button, Chip, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Input, Tooltip } from "@nextui-org/react";
-import { MdDoneAll } from "react-icons/md";
-import { Table2Props, ReportProps, ReportPropsTable } from "@/types/type";
+import { FaPhotoVideo } from "react-icons/fa";
+import { Table2Props, ReportProps, ListProps } from "@/types/type";
 import { FiSearch } from "react-icons/fi";
 import { departmentColorMap, statusColorMap } from "./consts";
 import { departmentOptionsNoNull, statusOptions } from "./data";
@@ -10,8 +10,10 @@ import { updateReportDepartment, updateReportStatus } from "@/hooks/route";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { FaChevronRight } from "react-icons/fa6";
 
-const List: React.FC<Table2Props> = ({ reports, onDataChange }) => {
+
+const List: React.FC<ListProps> = ({ reports, onDataChange }) => {
   const [filterValue, setFilterValue] = useState("");
   const { data: session } = useSession();
   const isAdminStatus = session?.user?.roles?.includes('admin');
@@ -104,33 +106,18 @@ const List: React.FC<Table2Props> = ({ reports, onDataChange }) => {
         showDivider={false}
         className="p-2 flex flex-col gap-1 w-full"
         variant="splitted"      >
-        {filteredReports.map((report: ReportPropsTable) => (
+        {filteredReports.map((report: ReportProps) => (
        
           <AccordionItem
             key={report.id}
+            indicator={<FaChevronRight /> }
             title={report.title.split(' - ')[0]}
             subtitle={
               <div className="text-sm flex flex-col gap-2">
-                <p className="text-sm text-gray-500">Fecha de creación: {new Date(report.created_at).toLocaleDateString()}</p>
-                <p className="text-sm text-gray-500">Fecha de actualización: {new Date(report.updated_at).toLocaleDateString()}</p>
-                <div>
-                    <Chip className="capitalize" color={departmentColorMap[report.department]} size="sm" variant="flat">
-                    {report.department || "Sin asignar"}
-                </Chip>
-                <Chip className="capitalize" color={statusColorMap[report.status]} size="sm" variant="flat">
-                    {report.status}
-                    </Chip>
-                </div>
-                
-                    
-
-              </div>
-            }
-          >
-
-            <div className="flex flex-col gap-4">
-                    <section className="flex justify-between">
-                    <div className="flex justify-start  items-">
+                <p className="text-sm text-gray-500 break-all">Fecha de creación: {new Date(report.created_at).toLocaleDateString()}</p>
+                <p className="text-sm text-gray-500 break-all">Fecha de actualización: {new Date(report.updated_at).toLocaleDateString()}</p>
+                <div className="flex gap-4">
+                <div className="flex justify-start  items-">
                         <Chip className="capitalize" color={departmentColorMap[report.department]} size="sm" variant="flat">
                             {report.department || "Sin asignar"}
                         </Chip>
@@ -178,9 +165,42 @@ const List: React.FC<Table2Props> = ({ reports, onDataChange }) => {
                             }
                     </div>
 
+                </div>
+                
+                {report.images.length > 1 ? (
+
+                  <div className="flex gap-2">
+                      <Chip  size="sm" startContent={<FaPhotoVideo size={18} color="white"/>}  
+                    classNames={{
+                      base: "bg-red-500 px-3",
+                      content: "drop-shadow shadow-black ",
+                    }}>
+                      <p className=" text-white ml-1">Archivo Multimedia</p>
+                    </Chip>
+                    <p className="text-sm text-gray-500">+{report.images.length - 1}</p>
+                  </div>
+                   
+                ) : report.images.length === 1 ? (
+
+                  <Chip  key={report.images[0].id} size="sm" startContent={<FaPhotoVideo size={18} color="white" />}  
+                    classNames={{
+                      base: "bg-red-500 px-3",
+                      content: "drop-shadow shadow-black ",
+                    }}>
+                      <p className=" text-white ml-1">Archivo Multimedia</p>
+                    </Chip>
+                  
+                ) : null}
                     
 
-                </section>
+              </div>
+            }
+          >
+
+            <div className="flex flex-col gap-4">
+
+            <p className="text-sm text-gray-500">Usuario: {report.user.name ? ( report.user.name.length > 30 ? `${ report.user.name.substring(0, 150)}...` :  report.user.name) : "Sin usuario"}</p>
+
 
                 <p>{report.description ? ( report.description.length > 150 ? `${ report.description.substring(0, 150)}...` :  report.description) : "Sin descripción"}</p>
 
@@ -193,8 +213,6 @@ const List: React.FC<Table2Props> = ({ reports, onDataChange }) => {
                         
                             Ver detalles
                 </Link>
-
-                
 
             </div>
 

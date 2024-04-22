@@ -72,4 +72,8 @@ export interface ReportProps {
     onDataChange?: () => void; // Add this line
 
   }
-  
+  export interface ListProps {
+    reports: ReportProps[];
+    onDataChange?: () => void; // Add this line
+
+  }
