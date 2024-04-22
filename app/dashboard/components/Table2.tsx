@@ -497,6 +497,7 @@ const Table2: React.FC<Table2Props> = ({ reports, onDataChange }) => {
       </div>
     );
   }, [selectedKeys, items.length, page, pages, hasSearchFilter]);
+  const centeredColumns = ["actions", "status", "department"];
 
   return (
     <Table
@@ -519,7 +520,7 @@ const Table2: React.FC<Table2Props> = ({ reports, onDataChange }) => {
         {(column) => (
           <TableColumn
             key={column.uid}
-            align={column.uid === "actions" ? "center" : "start"}
+            align={column.uid === "actions"  ? "center" : "start"}
             allowsSorting={column.sortable}
           >
             {column.name}

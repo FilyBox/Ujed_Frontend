@@ -1,5 +1,5 @@
 import React from 'react';
-import { Textarea, Button } from '@nextui-org/react';
+import { Button } from '@nextui-org/react';
 import { Swiper, SwiperSlide } from 'swiper/react'; // Usando Swiper para el carrusel
 import 'swiper/css/bundle';
 import 'swiper/css';
@@ -7,21 +7,23 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import { Navigation, Pagination, Mousewheel, Keyboard } from 'swiper/modules';
 import { jsPDF } from "jspdf";
-import html2canvas from "html2canvas";
-import { ReportProps, ImageProps } from '@/types/type';
+import { ReportProps } from '@/types/type';
 
 // Componente para la cabecera del reporte
-const Header = ({ title, createdAt }: { title: string, createdAt: string }) => {
+const Header = ({ title, createdAt, updatedAt }: { title: string, createdAt: string, updatedAt: string }) => {
   const displayTitle = title.split(' - ')[0]; // Divide el título en ' - ' y toma el primer elemento
-  const displayDate = createdAt.split(' T ')[0]; // Divide el título en ' - ' y toma el primer elemento
-
-  const userNameDisplay = displayTitle ? (displayTitle.length > 10 ? `${displayTitle.substring(0, 10)}...` : displayTitle) : "";
 
   return (
-    <div className="w-full flex flex-col sm:flex-row justify-between px-5 items-center gap-2 bg-red-500 py-2">
+    <div className="w-full flex flex-col justify-between px-5 items-center gap-2 bg-red-500 py-2">
       
-      <h1 className="text-lg">{userNameDisplay}</h1>
-      <h1 className="text-lg">{displayDate}</h1>
+      <h1 className="text-lg">{displayTitle}</h1>
+
+      <div className='flex flex-col sm:flex-row w-full justify-start sm:justify-between'>
+          <h1 className="text-lg">Fecha creación: {new Date(createdAt).toLocaleDateString()}</h1>
+          <h1 className="text-lg">Fecha actualización: {new Date(updatedAt).toLocaleDateString()}</h1>
+      </div>
+     
+
     </div>
   );
 };
@@ -72,9 +74,14 @@ const Content = ({ report }: { report: ReportProps }) => {
     // Subtítulo / Encabezado de la carta
     doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
-    doc.text('VINCULACIÓN', margin, margin + 130);
-    doc.text(`UBICACIÖN: ${report.location}`, margin, margin + 145);
-    doc.text(`ASUNTO: ${userNameDisplay}`, margin, margin + 160);
+    doc.text(`ASUNTO: ${displayTitle}`, margin, margin + 130);
+
+    doc.text(`UBICACIÓN:`, margin, margin + 145);
+    doc.text(`-Facultad: ${report.location.faculty || ''}`, margin, margin + 160);
+    doc.text(`-Edificio: ${report.location.building || ''}`, margin, margin + 175);
+    doc.text(`-Aula: ${report.location.classroom || ''}`, margin, margin + 190);
+
+    
   
     // Cuerpo de la carta
     const bodyText = [
@@ -91,9 +98,10 @@ const Content = ({ report }: { report: ReportProps }) => {
     ];
   
     doc.setFontSize(12);
-    doc.text(bodyText, margin, margin + 200, { maxWidth: pageWidth - 2 * margin });
+    doc.text(bodyText, margin, margin + 220, { maxWidth: pageWidth - 2 * margin });
   
   
+
     // Añadir información de la institución en el pie de página
     doc.setFontSize(10);
     doc.setFont('helvetica', 'italic');
@@ -112,105 +120,95 @@ const Content = ({ report }: { report: ReportProps }) => {
 
   return (
 
-    <div className="p-4 ">
-     
-    <div className='flex flex-col w-full h-fit mb-5'>
-    <div className="flex flex-col gap-2 bg-gray-300 rounded-t-2xl pl-5 py-3 w-full" ></div>
+    <div className=" shadow  sm:rounded-3xl max-w-full mx-auto sm:my-10 w-full bg-red-500 py-2">
+            <div className="px-4 py-5 sm:px-6">
+                <h1 aria-label='title' className="text-lg leading-6 font-medium text-gray-900">{report.title}</h1>
+            </div>
+            <div className="border-t border-gray-200">
+                <dl>
 
-    <Header title={report.title} createdAt={report.created_at} />
-    </div>
-      <section className="h-full  w-full flex flex-col gap-x-4 pb-5">
-        <div className="flex flex-col w-full   h-full">
-            <p className="text-xl text-black">Usuario</p>
-            <Textarea isReadOnly variant="bordered" placeholder="Nombre del usuario"
-            defaultValue={`${report.user.name ? (report.user.name) : ""} ${report.user.last_name}`} className="h-full w-full" />
+                  <div className="bg-white px-4 py-5 flex flex-col justify-start sm:gap-4 sm:px-6">
+
+                  <p aria-label='subtitle' className="border-b mb-4 mt-1 max-w-2xl text-base font-medium text-gray-700">Detalles del reporte</p>
+
+                      <dt aria-label='creation date label' className="text-sm font-medium text-gray-500">Fecha creación</dt>
+                      <dd aria-label='creation date' className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{new Date(report.created_at).toLocaleDateString()}</dd>
+                  </div>
+                  <div className="bg-gray-50 px-4 py-5 flex flex-col justify-start sm:gap-4 sm:px-6">
+                      <dt aria-label='updated date label' className="text-sm font-medium text-gray-500">Ultima actualización</dt>
+                      <dd aria-label='updated date' className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{new Date(report.updated_at).toLocaleDateString()}</dd>
+                  </div>
+                  <div className="bg-gray-50 px-4 py-5 flex flex-col justify-start sm:gap-4 sm:px-6">
+                      <dt aria-label='updated date label' className="text-sm font-medium text-gray-500">Descripción</dt>
+                      <dd aria-label='updated date' className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{report.description}</dd>
+                  </div>
+                  <div className="bg-gray-50 px-4 py-5 flex flex-col justify-start sm:gap-4 sm:px-6">
+                      <dt aria-label='updated date label' className="text-sm font-medium text-gray-500">Estatus</dt>
+                      <dd aria-label='updated date' className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{report.status}</dd>
+                  </div>
+                  <div className="bg-gray-50 px-4 py-5 flex flex-col justify-start sm:gap-4 sm:px-6">
+                      <dt aria-label='updated date label' className="text-sm font-medium text-gray-500">Departamento</dt>
+                      <dd aria-label='updated date' className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{report.department}</dd>
+                  </div>
+                  <div className="bg-white px-4 py-5 flex flex-col justify-start sm:gap-4 sm:px-6">
+                    <p aria-label='subtitle' className="border-b mb-4 mt-1 max-w-2xl text-base font-medium text-gray-700">Información del usuario</p>
+
+                        <dt aria-label='user name label' className="text-sm font-medium text-gray-500">Nombre completo</dt>
+                        <dd aria-label='user name' className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 break-words">{report.user.name} {report.user.last_name}</dd>
+                    </div>
+                   
+                    <div className="bg-white px-4 py-5 flex flex-col justify-start sm:gap-4 sm:px-6">
+                        <dt aria-label='email label' className="text-sm font-medium text-gray-500">Email</dt>
+                        <dd aria-label='email' className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{report.user.email}</dd>
+                    </div>
+                    <div className="bg-gray-50 px-4 py-5 flex flex-col justify-start sm:gap-4 sm:px-6">
+                        <dt aria-label='roles label' className="text-sm font-medium text-gray-500">Roles</dt>
+                        <dd aria-label='roles' className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{report.user.roles.join(', ')}</dd>
+                    </div>
+
+                    <div className="bg-gray-50 px-4 py-5 flex flex-col justify-start sm:gap-4 sm:px-6">
+                        <dt aria-label='roles label' className="text-sm font-medium text-gray-500">Ubicación</dt>
+                        <dd aria-label='roles' className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{`Facultad: ${report.location.faculty || ''}`} </dd>
+                        <dd aria-label='roles' className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{`Edificio: ${report.location.building|| ''}`} </dd>
+                        <dd aria-label='roles' className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{`Aula: ${report.location.classroom}`} </dd>
+
+                    </div>
+
+                    <div className="bg-gray-50 px-4 py-5 flex flex-col justify-start sm:gap-4 sm:px-6">
+                    {report.images && report.images.length > 0 &&     
+                        <Swiper
+                        className='w-52 sm:w-96 max-h-96'
+                        navigation={true}
+                            pagination={true}
+                            mousewheel={true}
+                            keyboard={true}
+                            modules={[Navigation, Pagination, Mousewheel, Keyboard]}
+                          spaceBetween={50}
+                          slidesPerView={1}
+                          onSlideChange={() => console.log('slide change')}
+                          onSwiper={(swiper) => console.log(swiper)}
+                        >
+                          {report.images.map(image => (
+                            <SwiperSlide key={image.id}>
+                              <img src={image.url} alt={`Image ${image.id}`} style={{ width: '100%', height: 'auto' }} />
+                            </SwiperSlide>
+                          ))}
+                        </Swiper>}
+                    </div>
+                  
+                </dl>
+            </div>
+            <div className="px-4 py-3 sm:px-6 flex sm:flex-row-reverse justify-between">
+
+                <div className='sm:px-6 flex flex-row-reverse'>
+                <Button className="bg-[#B11830] text-white py-2 rounded-md hover:bg-red-600 transition-colors duration-300 max-w-80 font-medium text-sm px-5  text-center mt-4" onClick={generatePDF}>Descargar PDF</Button>
+                </div>
+
+
+                
+            </div>
         </div>
 
-        <div className="flex flex-col w-full   h-full">
-            <p className="text-xl text-black">Email</p>
-            <Textarea isReadOnly variant="bordered" placeholder="Email del usuario" className="h-full w-full"
-            defaultValue={report.user.email}  />
-        </div>
-
-        <div className="flex flex-col w-full   h-full">
-          <p className="text-xl text-black">Estado</p>
-          <Textarea isReadOnly variant="bordered" placeholder="Estado del reporte" className="h-full w-full" defaultValue={report.status}  />
-        </div>
-
-        <div className="flex flex-col w-full   h-full">
-          <p className="text-xl text-black">Ubicación</p>
-          <Textarea isReadOnly variant="bordered" placeholder="Estado del reporte" className="h-full w-full" defaultValue={`Facultad: ${report.location.faculty || ''}\nEdificio: ${report.location.building|| ''}\nAula: ${report.location.classroom|| ''}`}  />
-        </div>
-
-        <div className="flex flex-col w-full   h-full">
-          <p className="text-xl text-black">Departamento</p>
-          <Textarea isReadOnly variant="bordered" placeholder="Estado del reporte" className="h-full w-full" defaultValue={report.department|| 'Sin asignar'}  />
-        </div>
-
-        <div className=" h-full flex flex-col w-full">
-          <p className="text-xl text-black">Descripción</p>
-          <Textarea isReadOnly variant="bordered" placeholder="Descripción del reporte" className="h-full w-full"      
-            defaultValue={report.description}  />
-        </div>
-
-        <div className="row-span-2 col-span-2 h-full flex flex-col w-full">
-        {report.images && report.images.length > 0 &&     
-        <Swiper
-        className='w-52 sm:w-96 max-h-96'
-        navigation={true}
-            pagination={true}
-            mousewheel={true}
-            keyboard={true}
-            modules={[Navigation, Pagination, Mousewheel, Keyboard]}
-          spaceBetween={50}
-          slidesPerView={1}
-          onSlideChange={() => console.log('slide change')}
-          onSwiper={(swiper) => console.log(swiper)}
-        >
-          {report.images.map(image => (
-            <SwiperSlide key={image.id}>
-              <img src={image.url} alt={`Image ${image.id}`} style={{ width: '100%', height: 'auto' }} />
-            </SwiperSlide>
-          ))}
-        </Swiper>}
-        <Button className="mt-4" onClick={generatePDF}>Descargar PDF</Button>
-
-        </div>
-      </section>
-    </div>
-
-
-    // <div id="reportContent" className="p-4">
-    //   <div className="flex flex-col items-center">
-    //     <h1 className="text-xl font-bold">{report.title}</h1>
-    //     <h2 className="text-lg">{report.created_at}</h2>
-    //     <Textarea readOnly value={report.description} className="w-full mb-4" />
-    //     <Textarea readOnly value={`${report.user.name} ${report.user.last_name}`} className="w-full mb-4" />
-    //     <Textarea readOnly value={report.user.email} className="w-full mb-4" />
-    //     <div className="row-span-3 col-span-2 h-full flex flex-col w-full">
-    //       {report.images && report.images.length > 0 &&     
-    //       <Swiper
-    //       className='w-96 max-h-96'
-    //       navigation={true}
-    //           pagination={true}
-    //           mousewheel={true}
-    //           keyboard={true}
-    //           modules={[Navigation, Pagination, Mousewheel, Keyboard]}
-    //         spaceBetween={50}
-    //         slidesPerView={1}
-    //         onSlideChange={() => console.log('slide change')}
-    //         onSwiper={(swiper) => console.log(swiper)}
-    //       >
-    //         {report.images.map(image => (
-    //           <SwiperSlide key={image.id}>
-    //             <img src={image.url} alt={`Image ${image.id}`} style={{ width: '100%', height: 'auto' }} />
-    //           </SwiperSlide>
-    //         ))}
-    //       </Swiper>}
-
-    //       </div>        <Button className="mt-4" onClick={generatePDF}>Descargar PDF</Button>
-    //   </div>
-    // </div>
   );
 };
 
