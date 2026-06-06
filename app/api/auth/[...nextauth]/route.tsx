@@ -1,6 +1,8 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL?.replace(/\/$/, "");
+
 const handler = NextAuth({
   providers: [
     CredentialsProvider({
@@ -10,21 +12,24 @@ const handler = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials, req) {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/users/login`,
-          {
-            method: "POST",
-            body: JSON.stringify({
-              email: credentials?.email,
-              password: credentials?.password,
-            }),
-            headers: { "Content-Type": "application/json" },
-          }
-        );
+        if (!backendUrl) {
+          throw new Error("Backend URL is not configured");
+        }
+
+        const res = await fetch(`${backendUrl}/users/login`, {
+          method: "POST",
+          body: JSON.stringify({
+            email: credentials?.email?.trim().toLowerCase(),
+            password: credentials?.password,
+          }),
+          headers: { "Content-Type": "application/json" },
+        });
         const user = await res.json();
         console.log(user);
 
-        if (user.error) throw user;
+        if (!res.ok || user.error) {
+          throw new Error(user.message ?? "Credentials are not valid");
+        }
 
         return user;
       },

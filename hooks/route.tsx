@@ -1,8 +1,8 @@
 "use client";
-import { useState, useEffect, useCallback } from 'react';
-import { useSession,signIn,signOut } from "next-auth/react";
-import { ReportProps } from '@/types/type';
-import { toast } from 'sonner'
+import { useState, useEffect, useCallback } from "react";
+import { useSession, signIn, signOut } from "next-auth/react";
+import { ReportProps } from "@/types/type";
+import { toast } from "sonner";
 
 //All reports
 export const DashboardFetchReports = () => {
@@ -15,27 +15,30 @@ export const DashboardFetchReports = () => {
     const fetchReports = async () => {
       if (!session) return;
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/?limit=999`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            authorization: `Bearer ${session?.user?.token}`,
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/?limit=999`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              authorization: `Bearer ${session?.user?.token}`,
+            },
           },
-        });
+        );
 
         if (response.status === 401) {
-          signOut();  // Sign out if unauthorized
+          signOut(); // Sign out if unauthorized
           toast.error("La sesión ha caducado");
           return;
-      }
+        }
 
-      if (response.status === 403) {
+        if (response.status === 403) {
           toast.error("No tienes los permisos para ver este contenido");
           return;
-      }
+        }
 
         if (!response.ok) {
-          throw new Error('No tienes los permisos para ver este contenido');
+          throw new Error("No tienes los permisos para ver este contenido");
         }
         const data = await response.json();
         setReports(data);
@@ -63,15 +66,18 @@ export const useFetchReport = (reportId: string) => {
     async function fetchReport() {
       if (!session || !reportId) return;
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/${reportId}`, {
-          method: 'GET',
-          headers: {
-            "Content-Type": "application/json",
-            authorization: `Bearer ${session?.user?.token}`,
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/${reportId}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              authorization: `Bearer ${session?.user?.token}`,
+            },
           },
-        });
+        );
         if (!response.ok) {
-          throw new Error('Failed to fetch report');
+          throw new Error("Failed to fetch report");
         }
         const data = await response.json();
         setReport(data);
@@ -96,57 +102,59 @@ export const useFetchSingleReport = (reportId: string) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-      if (status === 'unauthenticated') {
-          signIn();  // Automatically trigger sign-in
-      } else if (status === 'authenticated') {
-          fetchReports();
-      }
+    if (status === "unauthenticated") {
+      signIn(); // Automatically trigger sign-in
+    } else if (status === "authenticated") {
+      fetchReports();
+    }
   }, [status]);
 
   async function fetchReports() {
-      if (!session) {
-          console.error("No session found!");
-          return;
+    if (!session) {
+      console.error("No session found!");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/${reportId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.user.token}`,
+          },
+        },
+      );
+
+      if (response.status === 401) {
+        signOut(); // Sign out if unauthorized
+        toast.error("La sesión ha caducado");
+        return;
       }
 
-      try {
-              const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/${reportId}`, {
-              method: 'GET',
-              headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${session.user.token}`,
-              },
-          });
-
-          if (response.status === 401) {
-              signOut();  // Sign out if unauthorized
-              toast.error("La sesión ha caducado");
-              return;
-          }
-
-          if (response.status === 403) {
-              toast.error("No tienes los permisos para ver este contenido");
-              return;
-          }
-          if (!reportId) {
-            toast.error("Reporte no existente o invalido");
-            return;
-        }
-          
-
-          if (!response.ok) {
-              throw new Error('No se pudo obtener el reporte');
-          }
-
-          const data = await response.json();
-          setReport(data);
-      } catch (error:any) {
-          setError(error.message);
-          console.error('Error fetching reports:', error);
-          toast.error(error.message || 'An error occurred while fetching reports.');
-      } finally {
-          setLoading(false);
+      if (response.status === 403) {
+        toast.error("No tienes los permisos para ver este contenido");
+        return;
       }
+      if (!reportId) {
+        toast.error("Reporte no existente o invalido");
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error("No se pudo obtener el reporte");
+      }
+
+      const data = await response.json();
+      setReport(data);
+    } catch (error: any) {
+      setError(error.message);
+      console.error("Error fetching reports:", error);
+      toast.error(error.message || "An error occurred while fetching reports.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return { report, loading, error };
@@ -160,57 +168,60 @@ export const useFetchReports = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-      if (status === 'unauthenticated') {
-          signIn();  // Automatically trigger sign-in
-      } else if (status === 'authenticated') {
-          fetchReports();
-      }
+    if (status === "unauthenticated") {
+      signIn(); // Automatically trigger sign-in
+    } else if (status === "authenticated") {
+      fetchReports();
+    }
   }, [status]);
 
   async function fetchReports() {
-      if (!session) {
-          console.error("No session found!");
-          return;
+    if (!session) {
+      console.error("No session found!");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/?limit=999`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.user.token}`,
+          },
+        },
+      );
+
+      if (response.status === 401) {
+        signOut(); // Sign out if unauthorized
+        toast.error("La sesión ha caducado");
+        return;
       }
 
-      try {
-          const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/?limit=999`, {
-              method: 'GET',
-              headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${session.user.token}`,
-              },
-          });
-
-          if (response.status === 401) {
-              signOut();  // Sign out if unauthorized
-              toast.error("La sesión ha caducado");
-              return;
-          }
-
-          if (response.status === 403) {
-              toast.error("No tienes los permisos para ver este contenido");
-              return;
-          }
-
-          if (!response.ok) {
-              throw new Error('Failed to fetch reports');
-          }
-
-          const data = await response.json();
-          setReports(data);
-          if (data.length === 0) {
-            toast.error("No hay reportes disponibles");
-
-            return;
-          }
-      } catch (error:any) {
-          setError(error.message);
-          console.error('Error fetching reports:', error);
-          toast.error(error.message || 'An error occurred while fetching reports.');
-      } finally {
-          setLoading(false);
+      if (response.status === 403) {
+        toast.error("No tienes los permisos para ver este contenido");
+        return;
       }
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch reports");
+      }
+
+      const data = await response.json();
+      setReports(data);
+      if (data.length === 0) {
+        toast.error("No hay reportes disponibles");
+
+        return;
+      }
+    } catch (error: any) {
+      setError(error.message);
+      console.error("Error fetching reports:", error);
+      toast.error(error.message || "An error occurred while fetching reports.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return { reports, loading, error, fetchReports };
@@ -224,59 +235,61 @@ export const useFetchMantenimientoReports = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-      if (status === 'unauthenticated') {
-          signIn();  // Automatically trigger sign-in
-      } else if (status === 'authenticated') {
-          fetchReports();
-      }
+    if (status === "unauthenticated") {
+      signIn(); // Automatically trigger sign-in
+    } else if (status === "authenticated") {
+      fetchReports();
+    }
   }, [status]);
 
   async function fetchReports() {
-      if (!session) {
-          console.error("No session found!");
-          return;
+    if (!session) {
+      console.error("No session found!");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/department/mantenimiento/?limit=999`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.user.token}`,
+          },
+        },
+      );
+
+      if (response.status === 401) {
+        signOut(); // Sign out if unauthorized
+        toast.error("La sesión ha caducado");
+        return;
       }
 
-      try {
-          const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/department/mantenimiento/?limit=999`, {
-              method: 'GET',
-              headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${session.user.token}`,
-              },
-          });
-
-          if (response.status === 401) {
-              signOut();  // Sign out if unauthorized
-              toast.error("La sesión ha caducado");
-              return;
-          }
-
-          if (response.status === 403) {
-              toast.error("No tienes los permisos para ver este contenido");
-              return;
-          }
-
-          if (!response.ok) {
-              throw new Error('Failed to fetch reports');
-          }
-          
-
-          const data = await response.json();
-          setReports(data);
-
-          if (data.length === 0) {
-            toast.error("No hay reportes disponibles");
-
-            return;
-          }
-      } catch (error:any) {
-          setError(error.message);
-          console.error('Error fetching reports:', error);
-          toast.error(error.message || 'An error occurred while fetching reports.');
-      } finally {
-          setLoading(false);
+      if (response.status === 403) {
+        toast.error("No tienes los permisos para ver este contenido");
+        return;
       }
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch reports");
+      }
+
+      const data = await response.json();
+      setReports(data);
+
+      if (data.length === 0) {
+        toast.error("No hay reportes disponibles");
+
+        return;
+      }
+    } catch (error: any) {
+      setError(error.message);
+      console.error("Error fetching reports:", error);
+      toast.error(error.message || "An error occurred while fetching reports.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return { reports, loading, error, fetchReports };
@@ -289,150 +302,167 @@ export const useFetchObrasReports = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-      if (status === 'unauthenticated') {
-          signIn();  // Automatically trigger sign-in
-      } else if (status === 'authenticated') {
-          fetchReports();
-      }
+    if (status === "unauthenticated") {
+      signIn(); // Automatically trigger sign-in
+    } else if (status === "authenticated") {
+      fetchReports();
+    }
   }, [status]);
 
   async function fetchReports() {
-      if (!session) {
-          console.error("No session found!");
-          return;
+    if (!session) {
+      console.error("No session found!");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/department/obras/?limit=999`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.user.token}`,
+          },
+        },
+      );
+
+      if (response.status === 401) {
+        signOut(); // Sign out if unauthorized
+        toast.error("La sesión ha caducado");
+        return;
       }
 
-      try {
-          const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/department/obras/?limit=999`, {
-              method: 'GET',
-              headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${session.user.token}`,
-              },
-          });
-
-          if (response.status === 401) {
-              signOut();  // Sign out if unauthorized
-              toast.error("La sesión ha caducado");
-              return;
-          }
-
-          if (response.status === 403) {
-              toast.error("No tienes los permisos para ver este contenido");
-              return;
-          }
-
-          if (!response.ok) {
-              throw new Error('Failed to fetch reports');
-          }
-
-          const data = await response.json();
-          setReports(data);
-
-          if (data.length === 0) {
-            toast.error("No hay reportes disponibles");
-
-            return;
-          }
-      } catch (error:any) {
-          setError(error.message);
-          console.error('Error fetching reports:', error);
-          toast.error(error.message || 'An error occurred while fetching reports.');
-      } finally {
-          setLoading(false);
+      if (response.status === 403) {
+        toast.error("No tienes los permisos para ver este contenido");
+        return;
       }
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch reports");
+      }
+
+      const data = await response.json();
+      setReports(data);
+
+      if (data.length === 0) {
+        toast.error("No hay reportes disponibles");
+
+        return;
+      }
+    } catch (error: any) {
+      setError(error.message);
+      console.error("Error fetching reports:", error);
+      toast.error(error.message || "An error occurred while fetching reports.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return { reports, loading, error };
 };
 
 // uptade el estatus
-export const updateReportStatus = async (reportId:string, newStatus:string, token:string) => {
+export const updateReportStatus = async (
+  reportId: string,
+  newStatus: string,
+  token: string,
+) => {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/${reportId}/status`, {
-      method: 'PATCH',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/${reportId}/status`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: newStatus }),
       },
-      body: JSON.stringify({ status: newStatus }),
-    });
+    );
 
     if (response.status === 401) {
-      signOut();  // Sign out if unauthorized
-      toast.error("La sesión ha caducado",{ duration: 3000 });
+      signOut(); // Sign out if unauthorized
+      toast.error("La sesión ha caducado", { duration: 3000 });
       return;
-  }
+    }
 
-  if (response.status === 403) {
+    if (response.status === 403) {
       toast.error("No tienes los permisos para esta accion");
       return;
-  }
-  if (response.ok) {
-    toast.success("Actualizado");
-    return;
-}
-
+    }
+    if (response.ok) {
+      toast.success("Actualizado");
+      return;
+    }
 
     const data = await response.json();
     if (!response.ok) {
-      throw new Error(data.message || 'Failed to update report');
+      throw new Error(data.message || "Failed to update report");
     }
-    console.log(reportId)
+    console.log(reportId);
 
-    console.log(newStatus)
+    console.log(newStatus);
     return data;
   } catch (error) {
-    toast.error("Error: No fue posible actualizar",{ duration: 3000 });
+    toast.error("Error: No fue posible actualizar", { duration: 3000 });
 
-    console.error('Error updating report status:', error);
+    console.error("Error updating report status:", error);
     throw error;
   }
 };
-
 
 export const useFetchReportsByRole = () => {
   const { data: session, status } = useSession();
   const [reports, setReports] = useState<ReportProps[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  console.log("session", session?.user?.roles);
   useEffect(() => {
     const fetchReports = async () => {
-      if (!session) return;
+      if (!session?.user?.token) {
+        setLoading(false);
+        return;
+      }
+
+      const roles = session.user.roles ?? [];
+
+      if (roles.length === 0) {
+        setLoading(false);
+        return;
+      }
 
       setLoading(true);
       let url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/reports`;
 
       // Define the URL based on the user's roles
-      if (session.user.roles.includes('admin')) {
-        url += '/?limit=999';}
-      else if (session.user.roles.includes('mantenimiento')) {
-        url += '/department/mantenimiento/?limit=999';
-      } else if (session.user.roles.includes('obras')) {
-        url += '/department/obras/?limit=999';
+      if (roles.includes("admin")) {
+        url += "/?limit=999";
+      } else if (roles.includes("mantenimiento")) {
+        url += "/department/mantenimiento/?limit=999";
+      } else if (roles.includes("obras")) {
+        url += "/department/obras/?limit=999";
       }
 
       try {
         const response = await fetch(url, {
-          method: 'GET',
+          method: "GET",
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.user.token}`,
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.user.token}`,
           },
         });
 
-        
-    if (response.status === 401) {
-      signOut();  // Sign out if unauthorized
-      toast.error("La sesión ha caducado");
-      return;
-  }
+        if (response.status === 401) {
+          signOut(); // Sign out if unauthorized
+          toast.error("La sesión ha caducado");
+          return;
+        }
 
-  if (response.status === 403) {
-      toast.error("No tienes los permisos para esta accion");
-      return;
-  }
+        if (response.status === 403) {
+          toast.error("No tienes los permisos para esta accion");
+          return;
+        }
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -441,7 +471,7 @@ export const useFetchReportsByRole = () => {
         const data = await response.json();
         setReports(data);
       } catch (error) {
-        console.error('Error fetching reports:', error);
+        console.error("Error fetching reports:", error);
       } finally {
         setLoading(false);
       }
@@ -453,71 +483,76 @@ export const useFetchReportsByRole = () => {
   return { reports, loading, error };
 };
 
-
 // Update el departament
 
-export const updateReportDepartment = async (reportId:string, newDepartment:string, token:string) => {
+export const updateReportDepartment = async (
+  reportId: string,
+  newDepartment: string,
+  token: string,
+) => {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/${reportId}/department`, {
-      method: 'PATCH',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/${reportId}/department`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ department: newDepartment }),
       },
-      body: JSON.stringify({ department: newDepartment }),
-    });
+    );
 
     if (response.status === 401) {
-      signOut();  // Sign out if unauthorized
+      signOut(); // Sign out if unauthorized
       toast.error("La sesión ha caducado");
       return;
-  }
+    }
 
-  if (response.status === 403) {
+    if (response.status === 403) {
       toast.error("No tienes los permisos para esta accion");
       return;
-  }
+    }
 
-  if (response.ok) {
-    toast.success("Actualizado");
-    return;
-}
-
+    if (response.ok) {
+      toast.success("Actualizado");
+      return;
+    }
 
     const data = await response.json();
     if (!response.ok) {
-      throw new Error(data.message || 'Failed to update department');
+      throw new Error(data.message || "Failed to update department");
     }
-    console.log(reportId)
+    console.log(reportId);
 
-    console.log(newDepartment)
+    console.log(newDepartment);
     return data;
   } catch (error) {
-    toast.error("Error: No fue posible actualizar",{ duration: 3000 });
+    toast.error("Error: No fue posible actualizar", { duration: 3000 });
 
-    console.error('Error updating report department:', error);
+    console.error("Error updating report department:", error);
     throw error;
   }
 };
-
-
 
 export const deleteReport = async (reportId: string) => {
   const { data: session } = useSession();
 
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/${reportId}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer${session?.user?.token}`,
-        'Content-Type': 'application/json'
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/${reportId}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer${session?.user?.token}`,
+          "Content-Type": "application/json",
+        },
       },
-    });
-    if (!response.ok) throw new Error('Failed to delete the report');
+    );
+    if (!response.ok) throw new Error("Failed to delete the report");
     return true; // Return true on successful deletion
   } catch (error) {
-    console.error('Error deleting the report:', error);
+    console.error("Error deleting the report:", error);
     throw error; // Rethrow the error for further handling
   }
 };
-
