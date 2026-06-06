@@ -1,5 +1,5 @@
 "use client";
-import { signIn } from "next-auth/react";
+import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
@@ -19,23 +19,21 @@ const LoginPage = () => {
     const normalizedEmail = email.trim().toLowerCase();
 
     try {
-      const responseNextAuth = await signIn("credentials", {
+      const { error } = await authClient.signIn.email({
         email: normalizedEmail,
         password,
-        redirect: false,
       });
 
-      if (responseNextAuth?.error) {
-        toast.error(responseNextAuth.error.split(",").join(", "), {
+      if (error) {
+        toast.error(error.message ?? "Credenciales no válidas", {
           duration: 4000,
         });
         return;
       }
 
-      if (responseNextAuth?.ok) {
-        toast.success("Sesión iniciada correctamente");
-        router.push("/dashboard");
-      }
+      toast.success("Sesión iniciada correctamente");
+      router.push("/dashboard");
+      router.refresh();
     } finally {
       setIsLoading(false);
     }

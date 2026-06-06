@@ -1,10 +1,16 @@
+"use client";
 import React from 'react';
-import { useSession, signOut } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { authClient } from '@/lib/auth-client';
 
 const UnauthorizedUMessage = () => {
 
-  const handleChangeUser = () => {
-    signOut();
+  const router = useRouter();
+
+  const handleChangeUser = async () => {
+    await authClient.signOut();
+    router.push('/login');
+    router.refresh();
   };
 
   return (

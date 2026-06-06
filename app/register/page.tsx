@@ -1,12 +1,10 @@
 "use client";
 
-import { signIn } from "next-auth/react";
+import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-
-const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL?.replace(/\/$/, "");
 
 const RegisterPage = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -21,44 +19,19 @@ const RegisterPage = () => {
     if (isLoading) return;
     setIsLoading(true);
 
-    if (!backendUrl) {
-      toast.error("La URL del backend no está configurada.");
-      setIsLoading(false);
-      return;
-    }
-
     const normalizedEmail = email.trim().toLowerCase();
 
     try {
-      const res = await fetch(`${backendUrl}/users/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          last_name,
-          email: normalizedEmail,
-          password,
-        }),
-      });
-
-      const responseAPI = await res.json();
-
-      if (!res.ok) {
-        const messages = Array.isArray(responseAPI.message)
-          ? responseAPI.message
-          : [responseAPI.message ?? "Error al registrar usuario"];
-        toast.error(messages.join(", "), { duration: 4000 });
-        return;
-      }
-
-      const responseNextAuth = await signIn("credentials", {
+      // `last_name` is a Better Auth additional field configured on the server.
+      const { error } = await authClient.signUp.email({
         email: normalizedEmail,
         password,
-        redirect: false,
-      });
+        name,
+        last_name,
+      } as Parameters<typeof authClient.signUp.email>[0]);
 
-      if (responseNextAuth?.error) {
-        toast.error(responseNextAuth.error.split(",").join(", "), {
+      if (error) {
+        toast.error(error.message ?? "Error al registrar usuario", {
           duration: 4000,
         });
         return;
@@ -66,6 +39,7 @@ const RegisterPage = () => {
 
       toast.success("Cuenta creada correctamente");
       router.push("/dashboard");
+      router.refresh();
     } finally {
       setIsLoading(false);
     }

@@ -1,0 +1,11 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e4]:
+    - img "UJED Logo" [ref=e6]
+    - heading "Herramienta de Gestión de Reportes" [level=2] [ref=e7]
+    - generic [ref=e8]:
+      - textbox "email@ujed.mx" [ref=e9]
+      - textbox "Contraseña" [ref=e10]
+      - button "Acceder" [ref=e11] [cursor=pointer]
+      - link "Registrarse" [ref=e12] [cursor=pointer]:
+        - /url: /register
+  - region "Notifications alt+T"

@@ -2,7 +2,7 @@
 import { useSideBarToggle } from "@/hooks/use-sidebar-toggle";
 import classNames from "classnames";
 import { BsList } from "react-icons/bs";
-import { useSession, signOut } from "next-auth/react";
+import { authClient, rolesOf } from "@/lib/auth-client";
 import {
   Button,
   DropdownTrigger,
@@ -17,10 +17,10 @@ import { useMemo } from "react";
 import { NavBarItemGroup } from "@/types/type";
 
 export default function Header() {
-  const { data: session, status } = useSession();
+  const { data: session } = authClient.useSession();
+  const roles = rolesOf(session?.user?.role);
   const { toggleCollapse, invokeToggleCollapse } = useSideBarToggle();
   const router = useRouter();
-  const { update } = useSession();
 
   const sidebarToggle = () => {
     invokeToggleCollapse();
@@ -44,7 +44,7 @@ export default function Header() {
   const menuItems = useMemo(() => {
     let items: NavBarItemGroup[] = [];
 
-    if (session?.user?.roles.includes("admin")) {
+    if (roles.includes("admin")) {
       items = [
         {
           key: "Dashboard",
@@ -63,7 +63,7 @@ export default function Header() {
           path: "/dashboard/reportsobras",
         },
       ];
-    } else if (session?.user?.roles.includes("mantenimiento")) {
+    } else if (roles.includes("mantenimiento")) {
       items = [
         {
           key: "Dashboard",
@@ -74,7 +74,7 @@ export default function Header() {
           path: "/dashboard/reportsmantenimiento",
         },
       ];
-    } else if (session?.user?.roles.includes("obras")) {
+    } else if (roles.includes("obras")) {
       items = [
         {
           key: "Dashboard",
@@ -85,7 +85,7 @@ export default function Header() {
           path: "/dashboard/reportsobras",
         },
       ];
-    } else if (session?.user?.roles.includes("user")) {
+    } else if (roles.includes("user")) {
       items = [
         {
           key: "dashboard",
@@ -95,7 +95,7 @@ export default function Header() {
     }
 
     return items;
-  }, [session?.user?.roles]);
+  }, [session?.user?.role]);
 
   const userNameDisplay = session?.user?.name
     ? session?.user?.name.length > 10
@@ -160,7 +160,11 @@ export default function Header() {
                 key='close'
                 className='text-danger'
                 color='danger'
-                onClick={() => signOut()}
+                onClick={async () => {
+                  await authClient.signOut();
+                  router.push("/login");
+                  router.refresh();
+                }}
               >
                 Cerrar Sesión
               </DropdownItem>

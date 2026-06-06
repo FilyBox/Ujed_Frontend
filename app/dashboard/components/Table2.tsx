@@ -32,14 +32,14 @@ import { columns, statusOptions, departmentOptions, departmentOptionsNoNull } fr
 import { capitalize } from "./utils";
 import Link from "next/link";
 import { EyeIcon } from "./EyeIcon";
-import { useSession } from "next-auth/react";
+import { authClient, rolesOf } from "@/lib/auth-client";
 import { toast } from 'sonner'
 import { FiSearch } from "react-icons/fi";
 import { updateReportStatus, updateReportDepartment } from "@/hooks/route";
 import classNames from "classnames";
 
 const Table2: React.FC<Table2Props> = ({ reports, onDataChange }) => {
-  const { data: session } = useSession();
+  const { data: session } = authClient.useSession();
   const [filterValue, setFilterValue] = useState("");
   const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set([]));
   const [visibleColumns, setVisibleColumns] = useState<Selection>("all");
@@ -62,7 +62,7 @@ const Table2: React.FC<Table2Props> = ({ reports, onDataChange }) => {
       return;
     }
     try {
-      const updatedReport = await updateReportStatus(reportId, newStatus, session.user.token);
+      const updatedReport = await updateReportStatus(reportId, newStatus);
 
       if (onDataChange) {
         onDataChange();
@@ -89,7 +89,7 @@ const Table2: React.FC<Table2Props> = ({ reports, onDataChange }) => {
       return;
     }
     try {
-      const updatedDepartment = await updateReportDepartment(reportId, newDepartment, session.user.token);
+      const updatedDepartment = await updateReportDepartment(reportId, newDepartment);
       setDepartmentChanges(prev => ({ ...prev, [reportId]: newDepartment }));
 
       console.log('Report updated successfully:', updatedDepartment);
@@ -180,7 +180,7 @@ const Table2: React.FC<Table2Props> = ({ reports, onDataChange }) => {
           </div>
         );
       case "status":
-        const isAdminStatus = session?.user?.roles?.includes('admin');
+        const isAdminStatus = rolesOf(session?.user?.role).includes('admin');
 
         return (
           <div className="flex justify-center items-center">
@@ -243,7 +243,7 @@ const Table2: React.FC<Table2Props> = ({ reports, onDataChange }) => {
 
         case "department":
 
-        const isAdminDepartment = session?.user?.roles?.includes('admin');
+        const isAdminDepartment = rolesOf(session?.user?.role).includes('admin');
         const currentDepartment = departmentChanges[report.id] || report.department || 'Unassigned';
 
           return (

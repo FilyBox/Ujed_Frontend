@@ -1,5 +1,5 @@
 'use client'
-import { useSession } from "next-auth/react"; // Importa useSession de next-auth/react
+import { authClient, rolesOf } from "@/lib/auth-client";
 import { useSideBarToggle } from '@/hooks/use-sidebar-toggle';
 import SideBarMenuGroup from './sidebar-menu-group';
 import { SideBarLogo } from './sidebar-logo';
@@ -11,7 +11,8 @@ import { BiSolidReport } from "react-icons/bi";
 import { IoConstruct } from "react-icons/io5";
 export const SideBar = () => {
     
-    const { data: session } = useSession();  // Usa useSession para acceder a la sesión actual
+    const { data: session } = authClient.useSession();
+    const roles = rolesOf(session?.user?.role);
     const [mounted, setMounted] = useState(false);
     const { toggleCollapse, invokeToggleCollapse } = useSideBarToggle();
 
@@ -26,7 +27,7 @@ export const SideBar = () => {
     const menuItems = useMemo(() => {
         let items:SideNavItemGroup[] = [];
     
-        if (session?.user?.roles.includes('admin')) {
+        if (roles.includes('admin')) {
             items = [
                 { title: "",
                 menuList: [{
@@ -53,7 +54,7 @@ export const SideBar = () => {
         }]
     },
             ];
-        } else if (session?.user?.roles.includes('mantenimiento')) {
+        } else if (roles.includes('mantenimiento')) {
             items = [
                 {
                     title: "",
@@ -64,7 +65,7 @@ export const SideBar = () => {
                     }]
                 },
             ];
-        } else if (session?.user?.roles.includes('obras')) {
+        } else if (roles.includes('obras')) {
             items = [
                 {
                     title: "",
@@ -78,7 +79,7 @@ export const SideBar = () => {
         }
     
         return items;
-    }, [session?.user?.roles]);
+    }, [session?.user?.role]);
 
     return (
         <aside className={asideStyle}>

@@ -1,13 +1,38 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { useSession, signOut,signIn } from "next-auth/react";
+import { authClient } from "@/lib/auth-client";
 import { UserProps, UpdateUserData } from '@/types/type';
 import { toast } from 'sonner'
 
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL;
+
+const authedInit = (init: RequestInit = {}): RequestInit => ({
+  credentials: "include",
+  ...init,
+  headers: {
+    "Content-Type": "application/json",
+    ...(init.headers ?? {}),
+  },
+});
+
+const handleAuthError = async (response: Response): Promise<boolean> => {
+  if (response.status === 401) {
+    await authClient.signOut();
+    toast.error("La sesión ha caducado");
+    if (typeof window !== "undefined") window.location.href = "/login";
+    return true;
+  }
+  if (response.status === 403) {
+    toast.error("No tienes los permisos para esta accion");
+    return true;
+  }
+  return false;
+};
+
 export const useUserData = (): { userData: UserProps | null, loading: boolean } => {
 
-  const { data: session } = useSession();
+  const { data: session } = authClient.useSession();
   const [userData, setUserData] = useState<UserProps | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -16,22 +41,9 @@ export const useUserData = (): { userData: UserProps | null, loading: boolean } 
       if (session?.user?.id) {
         setLoading(true);
         try {
-          const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/${session.user.id}`, {
-            headers: {
-              'Authorization': `Bearer ${session.user.token}`,  // Asegúrate de que el token se envía correctamente
-              'Content-Type': 'application/json'
-            }
-          });
-          if (response.status === 401) {
-            signOut();  // Sign out if unauthorized
-            toast.error("La sesión ha caducado");
-            return;
-        }
-      
-        if (response.status === 403) {
-            toast.error("No tienes los permisos para esta accion");
-            return;
-        }
+          const response = await fetch(`${BACKEND}/users/${session.user.id}`, authedInit());
+          if (await handleAuthError(response)) return;
+
           const data = await response.json();
           if (response.ok) {
             setUserData(data);
@@ -55,45 +67,29 @@ export const useUserData = (): { userData: UserProps | null, loading: boolean } 
 
 // useUserUpdate
 export const useUserUpdate = () => {
-    const { data: session } = useSession();
+    const { data: session } = authClient.useSession();
 
-    // La función ahora acepta un objeto de tipo UpdateUserData
     const updateUserData = useCallback(async (data: UpdateUserData) => {
-        if (session?.user?.id && session.user.token) {
+        if (session?.user?.id) {
             try {
-                console.log("data edit:",data);
-                const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/${session.user.id}`, {
+                const response = await fetch(`${BACKEND}/users/${session.user.id}`, authedInit({
                     method: 'PATCH',
-                    headers: {
-                        'Authorization': `Bearer ${session.user.token}`,
-                        'Content-Type': 'application/json',
-                    },
                     body: JSON.stringify({
                         name: data?.name,
                         last_name: data?.last_name,
-                      }),
-                });
+                    }),
+                }));
 
-                if (response.status === 401) {
-                  signOut();  // Sign out if unauthorized
-                  toast.error("La sesión ha caducado");
-                  return;
-              }
-            
-              if (response.status === 403) {
-                  toast.error("No tienes los permisos para esta accion");
-                  return;
-              }
+                if (await handleAuthError(response)) return;
 
                 const result = await response.json();
                 if (!response.ok) {
                     throw new Error(result.message || "Unable to update user data");
                 }
-                console.log("Update successful", result);
                 return result;
             } catch (error) {
                 console.error("Error updating user data:", error);
-                throw error; // Propagate the error up if needed
+                throw error;
             }
         } else {
             throw new Error("No user session available");
@@ -106,13 +102,7 @@ export const useUserUpdate = () => {
 
 
 export const useDeleteUser = () => {
-  const { data: session, status } = useSession();
-
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      signIn();  // Automatically trigger sign-in if not authenticated
-    }
-  }, [status]);
+  const { data: session } = authClient.useSession();
 
   const deleteUser = async () => {
     if (!session) {
@@ -121,31 +111,19 @@ export const useDeleteUser = () => {
     }
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/${session.user.id}`, {
+      const response = await fetch(`${BACKEND}/users/${session.user.id}`, authedInit({
         method: 'DELETE',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.user.token}`,
-        },
-      });
+      }));
 
-          if (response.status === 401) {
-      signOut();  // Sign out if unauthorized
-      toast.error("La sesión ha caducado");
-      return;
-  }
-
-  if (response.status === 403) {
-      toast.error("No tienes los permisos para esta accion");
-      return;
-  }
+      if (await handleAuthError(response)) return;
 
       if (!response.ok) {
           throw new Error('Failed to delete the user');
       }
 
       toast.success("Cuenta eliminada");
-      signOut(); // Optionally sign out after deleting
+      await authClient.signOut();
+      if (typeof window !== "undefined") window.location.href = "/login";
     } catch (error:any) {
       console.error('Error deleting user:', error);
       toast.error("Error: " + (error.message || 'An unknown error occurred'));

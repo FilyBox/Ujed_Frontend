@@ -1,12 +1,43 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
-import { useSession, signIn, signOut } from "next-auth/react";
+import { useState, useEffect } from "react";
+import { authClient, rolesOf } from "@/lib/auth-client";
 import { ReportProps } from "@/types/type";
 import { toast } from "sonner";
 
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL;
+
+/** Cross-origin requests must carry the Better Auth session cookie. */
+const authedInit = (init: RequestInit = {}): RequestInit => ({
+  credentials: "include",
+  ...init,
+  headers: {
+    "Content-Type": "application/json",
+    ...(init.headers ?? {}),
+  },
+});
+
+/**
+ * Handles the common auth failures. Returns true when the caller should stop
+ * (the response was 401/403). On 401 the session is cleared and the user is
+ * sent to /login.
+ */
+const handleAuthError = async (response: Response): Promise<boolean> => {
+  if (response.status === 401) {
+    await authClient.signOut();
+    toast.error("La sesión ha caducado");
+    if (typeof window !== "undefined") window.location.href = "/login";
+    return true;
+  }
+  if (response.status === 403) {
+    toast.error("No tienes los permisos para ver este contenido");
+    return true;
+  }
+  return false;
+};
+
 //All reports
 export const DashboardFetchReports = () => {
-  const { data: session } = useSession();
+  const { data: session } = authClient.useSession();
   const [loading, setLoading] = useState(true);
   const [reports, setReports] = useState<ReportProps[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -15,27 +46,9 @@ export const DashboardFetchReports = () => {
     const fetchReports = async () => {
       if (!session) return;
       try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/?limit=999`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              authorization: `Bearer ${session?.user?.token}`,
-            },
-          },
-        );
+        const response = await fetch(`${BACKEND}/reports/?limit=999`, authedInit());
 
-        if (response.status === 401) {
-          signOut(); // Sign out if unauthorized
-          toast.error("La sesión ha caducado");
-          return;
-        }
-
-        if (response.status === 403) {
-          toast.error("No tienes los permisos para ver este contenido");
-          return;
-        }
+        if (await handleAuthError(response)) return;
 
         if (!response.ok) {
           throw new Error("No tienes los permisos para ver este contenido");
@@ -55,9 +68,9 @@ export const DashboardFetchReports = () => {
   return { loading, reports, error };
 };
 
-//single reports
+//single report
 export const useFetchReport = (reportId: string) => {
-  const { data: session } = useSession();
+  const { data: session } = authClient.useSession();
   const [report, setReport] = useState<ReportProps | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -66,16 +79,7 @@ export const useFetchReport = (reportId: string) => {
     async function fetchReport() {
       if (!session || !reportId) return;
       try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/${reportId}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              authorization: `Bearer ${session?.user?.token}`,
-            },
-          },
-        );
+        const response = await fetch(`${BACKEND}/reports/${reportId}`, authedInit());
         if (!response.ok) {
           throw new Error("Failed to fetch report");
         }
@@ -95,53 +99,30 @@ export const useFetchReport = (reportId: string) => {
 };
 
 export const useFetchSingleReport = (reportId: string) => {
-  const { data: session, status } = useSession();
+  const { data: session, isPending } = authClient.useSession();
   const [loading, setLoading] = useState(true);
   const [report, setReport] = useState<ReportProps | null>(null);
-
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      signIn(); // Automatically trigger sign-in
-    } else if (status === "authenticated") {
-      fetchReports();
-    }
-  }, [status]);
-
-  async function fetchReports() {
+    if (isPending) return;
     if (!session) {
-      console.error("No session found!");
+      setLoading(false);
       return;
     }
+    fetchReport();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session, isPending, reportId]);
 
+  async function fetchReport() {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/${reportId}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.user.token}`,
-          },
-        },
-      );
+      const response = await fetch(`${BACKEND}/reports/${reportId}`, authedInit());
 
-      if (response.status === 401) {
-        signOut(); // Sign out if unauthorized
-        toast.error("La sesión ha caducado");
-        return;
-      }
-
-      if (response.status === 403) {
-        toast.error("No tienes los permisos para ver este contenido");
-        return;
-      }
+      if (await handleAuthError(response)) return;
       if (!reportId) {
         toast.error("Reporte no existente o invalido");
         return;
       }
-
       if (!response.ok) {
         throw new Error("No se pudo obtener el reporte");
       }
@@ -150,7 +131,6 @@ export const useFetchSingleReport = (reportId: string) => {
       setReport(data);
     } catch (error: any) {
       setError(error.message);
-      console.error("Error fetching reports:", error);
       toast.error(error.message || "An error occurred while fetching reports.");
     } finally {
       setLoading(false);
@@ -162,48 +142,26 @@ export const useFetchSingleReport = (reportId: string) => {
 
 //All reports
 export const useFetchReports = () => {
-  const { data: session, status } = useSession();
+  const { data: session, isPending } = authClient.useSession();
   const [loading, setLoading] = useState(true);
   const [reports, setReports] = useState([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      signIn(); // Automatically trigger sign-in
-    } else if (status === "authenticated") {
-      fetchReports();
-    }
-  }, [status]);
-
-  async function fetchReports() {
+    if (isPending) return;
     if (!session) {
-      console.error("No session found!");
+      setLoading(false);
       return;
     }
+    fetchReports();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session, isPending]);
 
+  async function fetchReports() {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/?limit=999`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.user.token}`,
-          },
-        },
-      );
+      const response = await fetch(`${BACKEND}/reports/?limit=999`, authedInit());
 
-      if (response.status === 401) {
-        signOut(); // Sign out if unauthorized
-        toast.error("La sesión ha caducado");
-        return;
-      }
-
-      if (response.status === 403) {
-        toast.error("No tienes los permisos para ver este contenido");
-        return;
-      }
-
+      if (await handleAuthError(response)) return;
       if (!response.ok) {
         throw new Error("Failed to fetch reports");
       }
@@ -212,12 +170,10 @@ export const useFetchReports = () => {
       setReports(data);
       if (data.length === 0) {
         toast.error("No hay reportes disponibles");
-
         return;
       }
     } catch (error: any) {
       setError(error.message);
-      console.error("Error fetching reports:", error);
       toast.error(error.message || "An error occurred while fetching reports.");
     } finally {
       setLoading(false);
@@ -229,63 +185,41 @@ export const useFetchReports = () => {
 
 //Mantenimiento reports
 export const useFetchMantenimientoReports = () => {
-  const { data: session, status } = useSession();
+  const { data: session, isPending } = authClient.useSession();
   const [loading, setLoading] = useState(true);
   const [reports, setReports] = useState([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      signIn(); // Automatically trigger sign-in
-    } else if (status === "authenticated") {
-      fetchReports();
-    }
-  }, [status]);
-
-  async function fetchReports() {
+    if (isPending) return;
     if (!session) {
-      console.error("No session found!");
+      setLoading(false);
       return;
     }
+    fetchReports();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session, isPending]);
 
+  async function fetchReports() {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/department/mantenimiento/?limit=999`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.user.token}`,
-          },
-        },
+        `${BACKEND}/reports/department/mantenimiento/?limit=999`,
+        authedInit(),
       );
 
-      if (response.status === 401) {
-        signOut(); // Sign out if unauthorized
-        toast.error("La sesión ha caducado");
-        return;
-      }
-
-      if (response.status === 403) {
-        toast.error("No tienes los permisos para ver este contenido");
-        return;
-      }
-
+      if (await handleAuthError(response)) return;
       if (!response.ok) {
         throw new Error("Failed to fetch reports");
       }
 
       const data = await response.json();
       setReports(data);
-
       if (data.length === 0) {
         toast.error("No hay reportes disponibles");
-
         return;
       }
     } catch (error: any) {
       setError(error.message);
-      console.error("Error fetching reports:", error);
       toast.error(error.message || "An error occurred while fetching reports.");
     } finally {
       setLoading(false);
@@ -296,63 +230,41 @@ export const useFetchMantenimientoReports = () => {
 };
 
 export const useFetchObrasReports = () => {
-  const { data: session, status } = useSession();
+  const { data: session, isPending } = authClient.useSession();
   const [loading, setLoading] = useState(true);
   const [reports, setReports] = useState([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      signIn(); // Automatically trigger sign-in
-    } else if (status === "authenticated") {
-      fetchReports();
-    }
-  }, [status]);
-
-  async function fetchReports() {
+    if (isPending) return;
     if (!session) {
-      console.error("No session found!");
+      setLoading(false);
       return;
     }
+    fetchReports();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session, isPending]);
 
+  async function fetchReports() {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/department/obras/?limit=999`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.user.token}`,
-          },
-        },
+        `${BACKEND}/reports/department/obras/?limit=999`,
+        authedInit(),
       );
 
-      if (response.status === 401) {
-        signOut(); // Sign out if unauthorized
-        toast.error("La sesión ha caducado");
-        return;
-      }
-
-      if (response.status === 403) {
-        toast.error("No tienes los permisos para ver este contenido");
-        return;
-      }
-
+      if (await handleAuthError(response)) return;
       if (!response.ok) {
         throw new Error("Failed to fetch reports");
       }
 
       const data = await response.json();
       setReports(data);
-
       if (data.length === 0) {
         toast.error("No hay reportes disponibles");
-
         return;
       }
     } catch (error: any) {
       setError(error.message);
-      console.error("Error fetching reports:", error);
       toast.error(error.message || "An error occurred while fetching reports.");
     } finally {
       setLoading(false);
@@ -362,80 +274,54 @@ export const useFetchObrasReports = () => {
   return { reports, loading, error };
 };
 
-// uptade el estatus
-export const updateReportStatus = async (
-  reportId: string,
-  newStatus: string,
-  token: string,
-) => {
+// update status
+export const updateReportStatus = async (reportId: string, newStatus: string) => {
   try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/${reportId}/status`,
-      {
+      `${BACKEND}/reports/${reportId}/status`,
+      authedInit({
         method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({ status: newStatus }),
-      },
+      }),
     );
 
-    if (response.status === 401) {
-      signOut(); // Sign out if unauthorized
-      toast.error("La sesión ha caducado", { duration: 3000 });
-      return;
-    }
-
-    if (response.status === 403) {
-      toast.error("No tienes los permisos para esta accion");
-      return;
-    }
+    if (await handleAuthError(response)) return;
     if (response.ok) {
       toast.success("Actualizado");
       return;
     }
 
     const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.message || "Failed to update report");
-    }
-    console.log(reportId);
-
-    console.log(newStatus);
-    return data;
+    throw new Error(data.message || "Failed to update report");
   } catch (error) {
     toast.error("Error: No fue posible actualizar", { duration: 3000 });
-
     console.error("Error updating report status:", error);
     throw error;
   }
 };
 
 export const useFetchReportsByRole = () => {
-  const { data: session, status } = useSession();
+  const { data: session, isPending } = authClient.useSession();
   const [reports, setReports] = useState<ReportProps[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  console.log("session", session?.user?.roles);
+
   useEffect(() => {
     const fetchReports = async () => {
-      if (!session?.user?.token) {
+      if (isPending) return;
+      if (!session) {
         setLoading(false);
         return;
       }
 
-      const roles = session.user.roles ?? [];
-
+      const roles = rolesOf(session.user?.role);
       if (roles.length === 0) {
         setLoading(false);
         return;
       }
 
       setLoading(true);
-      let url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/reports`;
-
-      // Define the URL based on the user's roles
+      let url = `${BACKEND}/reports`;
       if (roles.includes("admin")) {
         url += "/?limit=999";
       } else if (roles.includes("mantenimiento")) {
@@ -445,25 +331,9 @@ export const useFetchReportsByRole = () => {
       }
 
       try {
-        const response = await fetch(url, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.user.token}`,
-          },
-        });
+        const response = await fetch(url, authedInit());
 
-        if (response.status === 401) {
-          signOut(); // Sign out if unauthorized
-          toast.error("La sesión ha caducado");
-          return;
-        }
-
-        if (response.status === 403) {
-          toast.error("No tienes los permisos para esta accion");
-          return;
-        }
-
+        if (await handleAuthError(response)) return;
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -478,81 +348,51 @@ export const useFetchReportsByRole = () => {
     };
 
     fetchReports();
-  }, [session, status]);
+  }, [session, isPending]);
 
   return { reports, loading, error };
 };
 
-// Update el departament
-
+// update department
 export const updateReportDepartment = async (
   reportId: string,
   newDepartment: string,
-  token: string,
 ) => {
   try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/${reportId}/department`,
-      {
+      `${BACKEND}/reports/${reportId}/department`,
+      authedInit({
         method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({ department: newDepartment }),
-      },
+      }),
     );
 
-    if (response.status === 401) {
-      signOut(); // Sign out if unauthorized
-      toast.error("La sesión ha caducado");
-      return;
-    }
-
-    if (response.status === 403) {
-      toast.error("No tienes los permisos para esta accion");
-      return;
-    }
-
+    if (await handleAuthError(response)) return;
     if (response.ok) {
       toast.success("Actualizado");
       return;
     }
 
     const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.message || "Failed to update department");
-    }
-    console.log(reportId);
-
-    console.log(newDepartment);
-    return data;
+    throw new Error(data.message || "Failed to update department");
   } catch (error) {
     toast.error("Error: No fue posible actualizar", { duration: 3000 });
-
     console.error("Error updating report department:", error);
     throw error;
   }
 };
 
 export const deleteReport = async (reportId: string) => {
-  const { data: session } = useSession();
-
   try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/${reportId}`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer${session?.user?.token}`,
-          "Content-Type": "application/json",
-        },
-      },
+      `${BACKEND}/reports/${reportId}`,
+      authedInit({ method: "DELETE" }),
     );
+    if (await handleAuthError(response)) return false;
     if (!response.ok) throw new Error("Failed to delete the report");
-    return true; // Return true on successful deletion
+    return true;
   } catch (error) {
     console.error("Error deleting the report:", error);
-    throw error; // Rethrow the error for further handling
+    throw error;
   }
 };

@@ -35,7 +35,7 @@ export interface UserProps {
   name: string;
   last_name: string;
   email: string;
-  roles: string[];
+  role: string;
   created_at: string;
   updated_at: string;
 }

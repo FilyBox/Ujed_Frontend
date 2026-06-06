@@ -1,8 +1,7 @@
 import { Karla } from 'next/font/google'
 import './globals.css'
 import { Metadata } from 'next';
-import SessionAuthProvider from './context/SessionAuthProvider';
-import { Toaster, toast } from 'sonner';
+import { Toaster } from 'sonner';
 
 const karla = Karla({
   weight: ["200", "300", "400", "500", "600", "700", "800"],
@@ -27,9 +26,7 @@ export default function RootLayout({
 
           <>
             <div className="flex flex-col h-full w-full">
-              <SessionAuthProvider>
-                {children}
-            </SessionAuthProvider>
+              {children}
             </div>
             <Toaster richColors />
 

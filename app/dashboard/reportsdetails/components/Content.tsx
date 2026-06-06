@@ -163,7 +163,7 @@ const Content = ({ report }: { report: ReportProps }) => {
                     </div>
                     <div className="bg-gray-50 px-4 py-5 flex flex-col justify-start sm:gap-4 sm:px-6">
                         <dt aria-label='roles label' className="text-sm font-medium text-gray-500">Roles</dt>
-                        <dd aria-label='roles' className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{report.user.roles.join(', ')}</dd>
+                        <dd aria-label='roles' className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{(report.user.role ?? '').split(',').join(', ')}</dd>
                     </div>
 
                     <div className="bg-gray-50 px-4 py-5 flex flex-col justify-start sm:gap-4 sm:px-6">

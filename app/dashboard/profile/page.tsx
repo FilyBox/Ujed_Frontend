@@ -53,7 +53,7 @@ const ProfilePage = () => {
                     </div>
                     <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                         <dt aria-label='roles label' className="text-sm font-medium text-gray-500">Roles</dt>
-                        <dd aria-label='roles' className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{userData.roles.join(', ')}</dd>
+                        <dd aria-label='roles' className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{(userData.role ?? '').split(',').join(', ')}</dd>
                     </div>
                     <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                         <dt aria-label='creation date label' className="text-sm font-medium text-gray-500">Fecha creación</dt>

@@ -8,15 +8,15 @@ import { departmentOptionsNoNull, statusOptions } from "./data";
 import { ChevronDownIcon } from "./ChevronDownIcon";
 import { updateReportDepartment, updateReportStatus } from "@/hooks/route";
 import { toast } from "sonner";
-import { useSession } from "next-auth/react";
+import { authClient, rolesOf } from "@/lib/auth-client";
 import Link from "next/link";
 import { FaChevronRight } from "react-icons/fa6";
 
 
 const List: React.FC<ListProps> = ({ reports, onDataChange }) => {
   const [filterValue, setFilterValue] = useState("");
-  const { data: session } = useSession();
-  const isAdminStatus = session?.user?.roles?.includes('admin');
+  const { data: session } = authClient.useSession();
+  const isAdminStatus = rolesOf(session?.user?.role).includes('admin');
 
   const filteredReports = useMemo(() => {
     return reports.filter(report => report.title.toLowerCase().includes(filterValue.toLowerCase()));
@@ -36,7 +36,7 @@ const List: React.FC<ListProps> = ({ reports, onDataChange }) => {
       return;
     }
     try {
-      const updatedDepartment = await updateReportDepartment(reportId, newDepartment, session.user.token);
+      const updatedDepartment = await updateReportDepartment(reportId, newDepartment);
       console.log('Report updated successfully:', updatedDepartment);
       console.log("ID:"+reportId)
       toast.success(
@@ -66,7 +66,7 @@ const List: React.FC<ListProps> = ({ reports, onDataChange }) => {
       return;
     }
     try {
-      const updatedReport = await updateReportStatus(reportId, newStatus, session.user.token);
+      const updatedReport = await updateReportStatus(reportId, newStatus);
       console.log('Report updated successfully:', updatedReport);
       console.log("ID:"+reportId)
       toast.success(
