@@ -16,6 +16,15 @@
 # production
 /build
 
+.mcp.json
+
+mcp.json
+settings.json
+mcporter.json
+config.toml
+opencode.json
+claude.md
+
 # misc
 .DS_Store
 *.pem

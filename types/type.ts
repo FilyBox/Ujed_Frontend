@@ -1,5 +1,7 @@
 import { FetchEventResult } from "next/dist/server/web/types";
 
+import type { JSX } from "react";
+
 export type SideNavItem = {
   title: string;
   path: string;
@@ -57,23 +59,23 @@ export interface ReportProps {
   user: UserProps;
   images: ImageProps[];}
 
-  export interface ReportPropsTable {
-    id: string;
-    title: string;
-    description: string;
-    status: string;
-    created_at: string;
-    updated_at: string;
-    department: string;
-  }
-  
-  export interface Table2Props {
-    reports: ReportPropsTable[];
-    onDataChange?: () => void; // Add this line
+export interface ReportPropsTable {
+  id: string;
+  title: string;
+  description: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  department: string;
+}
 
-  }
-  export interface ListProps {
-    reports: ReportProps[];
-    onDataChange?: () => void; // Add this line
+export interface Table2Props {
+  reports: ReportPropsTable[];
+  onDataChange?: () => void; // Add this line
 
-  }
+}
+export interface ListProps {
+  reports: ReportProps[];
+  onDataChange?: () => void; // Add this line
+
+}

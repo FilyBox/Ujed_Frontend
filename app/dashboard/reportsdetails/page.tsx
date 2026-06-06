@@ -1,44 +1,29 @@
 
 'use client';
 
-import { useParams, useSearchParams } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
-import { useSession } from "next-auth/react";
+import { useSearchParams } from 'next/navigation';
+import React, { Suspense } from 'react';
 import Content from './components/Content';
 import Loader from '@/components/ui/Loader';
-import { ReportProps } from '@/types/type';
 import { useFetchSingleReport } from '@/hooks/route';
 
-export default function ReportDetails({}) {
+function ReportDetailsContent() {
+  const searchParams = useSearchParams();
+  const search = searchParams.get('id') ?? '';
 
-  const searchParams = useSearchParams()
-  const search = searchParams.get('id')
-  const department = searchParams.get('department')
+  const { report, loading, error } = useFetchSingleReport(search);
 
-
-  const { report, loading, error } = search ? useFetchSingleReport(search) : { report: null, loading: false, error: null };
-
-
-  const { data: session, status } = useSession();
-
-  if (session){
-    
-  }
-
-  if (loading) {
-    return <Loader />;
-  }
-
-  if (error) {
-    return <Loader />;
-  }
-
-
-
-  if (!report) {
+  if (loading || error || !report) {
     return <Loader />;
   }
 
   return <Content report={report} />;
 }
 
+export default function ReportDetails() {
+  return (
+    <Suspense fallback={<Loader />}>
+      <ReportDetailsContent />
+    </Suspense>
+  );
+}
