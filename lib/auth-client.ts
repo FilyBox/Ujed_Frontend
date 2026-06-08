@@ -1,5 +1,5 @@
 import { createAuthClient } from "better-auth/react";
-import { adminClient } from "better-auth/client/plugins";
+import { adminClient, inferAdditionalFields } from "better-auth/client/plugins";
 import { ac, roles } from "./permissions";
 
 /**
@@ -15,7 +15,16 @@ export const authClient = createAuthClient({
   fetchOptions: {
     credentials: "include",
   },
-  plugins: [adminClient({ ac, roles })],
+  plugins: [
+    adminClient({ ac, roles }),
+    inferAdditionalFields({
+      user: {
+        roles: {
+          type: "string[]", //
+        },
+      },
+    }),
+  ],
 });
 
 export const { signIn, signUp, signOut, useSession } = authClient;

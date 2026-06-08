@@ -7,11 +7,12 @@ import { toast } from 'sonner'
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-const authedInit = (init: RequestInit = {}): RequestInit => ({
+const authedInit = (init: RequestInit = {}, token?: string | null): RequestInit => ({
   credentials: "include",
   ...init,
   headers: {
     "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(init.headers ?? {}),
   },
 });
@@ -41,7 +42,10 @@ export const useUserData = (): { userData: UserProps | null, loading: boolean } 
       if (session?.user?.id) {
         setLoading(true);
         try {
-          const response = await fetch(`${BACKEND}/users/${session.user.id}`, authedInit());
+          const response = await fetch(
+            `${BACKEND}/users/${session.user.id}`,
+            authedInit({}, session?.session?.token),
+          );
           if (await handleAuthError(response)) return;
 
           const data = await response.json();
@@ -72,13 +76,13 @@ export const useUserUpdate = () => {
     const updateUserData = useCallback(async (data: UpdateUserData) => {
         if (session?.user?.id) {
             try {
-                const response = await fetch(`${BACKEND}/users/${session.user.id}`, authedInit({
-                    method: 'PATCH',
-                    body: JSON.stringify({
-                        name: data?.name,
-                        last_name: data?.last_name,
-                    }),
-                }));
+                const response = await fetch(
+                  `${BACKEND}/users/${session.user.id}`,
+                  authedInit(
+                    { method: "PATCH", body: JSON.stringify({ name: data?.name, last_name: data?.last_name }) },
+                    session?.session?.token,
+                  ),
+                );
 
                 if (await handleAuthError(response)) return;
 
@@ -111,9 +115,10 @@ export const useDeleteUser = () => {
     }
 
     try {
-      const response = await fetch(`${BACKEND}/users/${session.user.id}`, authedInit({
-        method: 'DELETE',
-      }));
+      const response = await fetch(
+        `${BACKEND}/users/${session.user.id}`,
+        authedInit({ method: "DELETE" }, session?.session?.token),
+      );
 
       if (await handleAuthError(response)) return;
 

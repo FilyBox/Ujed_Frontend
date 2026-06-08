@@ -1,0 +1,29 @@
+import { NextRequest, NextResponse } from "next/server";
+
+// Better Auth sets this cookie on the auth server after sign-in.
+// If the backend configures a custom cookie name, update this constant.
+const SESSION_COOKIE = "better-auth.session_token";
+
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const hasSession = !!request.cookies.get(SESSION_COOKIE);
+
+  const isAuthPage =
+    pathname.startsWith("/login") || pathname.startsWith("/register");
+
+  // Unauthenticated user trying to access a protected page → send to login
+  if (!hasSession && !isAuthPage) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  // Already authenticated user hitting login/register → send to dashboard
+  if (hasSession && isAuthPage) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: ["/", "/dashboard/:path*", "/login", "/register"],
+};

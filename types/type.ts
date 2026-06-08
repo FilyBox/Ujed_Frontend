@@ -12,13 +12,13 @@ export type SideNavItem = {
 
 export type SideNavItemGroup = {
   title: string;
-  menuList: SideNavItem[]
-}
+  menuList: SideNavItem[];
+};
 
 export type NavBarItemGroup = {
   key: string;
   path: string;
-}
+};
 
 export interface UpdateUserData {
   name?: string;
@@ -44,7 +44,6 @@ export interface LocationProps {
   faculty: string;
   building: string;
   classroom: string;
-
 }
 
 export interface ReportProps {
@@ -57,25 +56,30 @@ export interface ReportProps {
   location: LocationProps;
   department: string;
   user: UserProps;
-  images: ImageProps[];}
+  images: ImageProps[];
+}
 
 export interface ReportPropsTable {
   id: string;
   title: string;
   description: string;
   status: string;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
   department: string;
 }
 
 export interface Table2Props {
   reports: ReportPropsTable[];
-  onDataChange?: () => void; // Add this line
-
+  total: number;
+  page: number;
+  limit: number;
+  onPageChange: (page: number) => void;
+  onLimitChange: (limit: number) => void;
+  onDataChange?: () => void;
 }
+
 export interface ListProps {
   reports: ReportProps[];
-  onDataChange?: () => void; // Add this line
-
+  onDataChange?: () => void;
 }

@@ -36,57 +36,35 @@ const List: React.FC<ListProps> = ({ reports, onDataChange }) => {
       return;
     }
     try {
-      const updatedDepartment = await updateReportDepartment(reportId, newDepartment);
+      const updatedDepartment = await updateReportDepartment(reportId, newDepartment, session?.session?.token);
       console.log('Report updated successfully:', updatedDepartment);
-      console.log("ID:"+reportId)
-      toast.success(
-        <div className="success alert-success">
-          Estatus actualizado
-        </div>,
-        { duration: 3000 }
-      );
+      toast.success("Departamento actualizado", { duration: 3000 });
       if (onDataChange) {
         onDataChange();
       }
 
     } catch (error) {
       console.error('Failed to update report:', error);
-      toast.error(
-        <div className="alert alert-danger">
-          No fue posible actualizar el estatus
-        </div>,
-        { duration: 3000 }
-      );
+      toast.error("No fue posible actualizar el departamento", { duration: 3000 });
     }
   };
-  
+
   const handleStatusChange = async (reportId:string, newStatus:string) => {
     if (!session) {
       console.error("No session available");
       return;
     }
     try {
-      const updatedReport = await updateReportStatus(reportId, newStatus);
+      const updatedReport = await updateReportStatus(reportId, newStatus, session?.session?.token);
       console.log('Report updated successfully:', updatedReport);
-      console.log("ID:"+reportId)
-      toast.success(
-        <div className="success alert-success">
-          Estatus actualizado
-        </div>,
-        { duration: 3000 }
-      );
+      toast.success("Estatus actualizado", { duration: 3000 });
       if (onDataChange) {
         onDataChange();
       }
 
     } catch (error) {
       console.error('Failed to update report:', error);
-      toast.error(
-        <div className="alert alert-danger">
-          No fue posible actualizar el estatus
-        </div>,
-        { duration: 3000 }
-      );
+      toast.error("No fue posible actualizar el estatus", { duration: 3000 });
     }
   };
 
