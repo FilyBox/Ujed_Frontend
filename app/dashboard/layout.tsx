@@ -2,17 +2,15 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import PageWrapper from "@/components/pagewrapper";
-import { SideBar } from "@/components/sidebar";
-import Header from "@/components/header";
-import Loader from "@/components/ui/Loader";
 import { authClient } from "@/lib/auth-client";
+import { AppSidebar } from "@/components/app-sidebar";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import Loader from "@/components/ui/Loader";
 
-/**
- * Client-side route guard. The Better Auth session cookie belongs to the
- * backend origin, so Next.js middleware can't see it — auth checks happen here
- * (UX redirect) while the backend enforces auth on every API call.
- */
 export default function DashboardLayout({
   children,
   modal,
@@ -34,13 +32,17 @@ export default function DashboardLayout({
   }
 
   return (
-    <>
-      {modal}
-      <SideBar />
-      <div className="flex flex-col h-full w-full bg-gray-100">
-        <Header />
-        <PageWrapper children={children} />
-      </div>
-    </>
+    <SidebarProvider className='h-full overflow-hidden'>
+      <AppSidebar />
+      <SidebarInset className='min-h-0 overflow-hidden flex flex-col'>
+        <header className='flex h-11 shrink-0 md:hidden block items-center gap-2 border-b bg-white px-4'>
+          <SidebarTrigger className='-ml-1' />
+        </header>
+        <div className='flex-1 overflow-y-auto p-4 bg-gray-50'>
+          {modal}
+          {children}
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
