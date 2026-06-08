@@ -14,8 +14,8 @@ const TableSkeleton = () => {
             title: "Report Title",
             description: "Detailed description here",
             status: "Active",
-            created_at: "2020-01-01T00:00:00.000Z",
-            updated_at: "2020-01-02T00:00:00.000Z",
+            createdAt: "2020-01-01T00:00:00.000Z",
+            updatedAt: "2020-01-02T00:00:00.000Z",
             department: "IT",
         },
         // More rows can be added similarly

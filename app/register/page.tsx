@@ -27,8 +27,9 @@ const RegisterPage = () => {
         email: normalizedEmail,
         password,
         name,
+        //@ts-expect-error - Better Auth's inferred additional fields aren't typed in the client yet
         lastName: last_name,
-      } as Parameters<typeof authClient.signUp.email>[0]);
+      });
 
       if (error) {
         toast.error(error.message ?? "Error al registrar usuario", {

@@ -13,7 +13,13 @@ import { authClient } from "@/lib/auth-client";
  * backend origin, so Next.js middleware can't see it — auth checks happen here
  * (UX redirect) while the backend enforces auth on every API call.
  */
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function DashboardLayout({
+  children,
+  modal,
+}: {
+  children: React.ReactNode;
+  modal: React.ReactNode;
+}) {
   const { data: session, isPending } = authClient.useSession();
   const router = useRouter();
 
@@ -29,6 +35,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <>
+      {modal}
       <SideBar />
       <div className="flex flex-col h-full w-full bg-gray-100">
         <Header />

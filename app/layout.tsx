@@ -2,6 +2,7 @@ import { Karla } from 'next/font/google'
 import './globals.css'
 import { Metadata } from 'next';
 import { Toaster } from 'sonner';
+import ReactQueryProvider from './context/ReactQueryProvider';
 
 const karla = Karla({
   weight: ["200", "300", "400", "500", "600", "700", "800"],
@@ -24,13 +25,12 @@ export default function RootLayout({
       <body className={karla.className + ' h-screen overflow-hidden bg-gray-100'}>
         
 
-          <>
+          <ReactQueryProvider>
             <div className="flex flex-col h-full w-full">
               {children}
             </div>
             <Toaster richColors />
-
-          </>
+          </ReactQueryProvider>
       </body>
     </html>
   )

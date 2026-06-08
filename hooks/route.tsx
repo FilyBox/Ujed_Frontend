@@ -1,13 +1,11 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { authClient, rolesOf } from "@/lib/auth-client";
 import { ReportProps } from "@/types/type";
 import { toast } from "sonner";
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-/** Cross-origin requests carry the session cookie AND the Bearer token so the
- *  backend can authenticate via either mechanism. */
 const authedInit = (init: RequestInit = {}, token?: string | null): RequestInit => ({
   credentials: "include",
   ...init,
@@ -18,11 +16,21 @@ const authedInit = (init: RequestInit = {}, token?: string | null): RequestInit 
   },
 });
 
-/**
- * Handles the common auth failures. Returns true when the caller should stop
- * (the response was 401/403). On 401 the session is cleared and the user is
- * sent to /login.
- */
+/** Throws on 401/403 so useQuery puts the query in error state. */
+const throwOnAuthError = async (response: Response): Promise<void> => {
+  if (response.status === 401) {
+    await authClient.signOut();
+    toast.error("La sesión ha caducado");
+    if (typeof window !== "undefined") window.location.href = "/login";
+    throw new Error("Sesión caducada");
+  }
+  if (response.status === 403) {
+    toast.error("No tienes los permisos para ver este contenido");
+    throw new Error("Sin permisos");
+  }
+};
+
+/** Used by mutations (non-query fetches) — returns boolean instead of throwing. */
 const handleAuthError = async (response: Response): Promise<boolean> => {
   if (response.status === 401) {
     await authClient.signOut();
@@ -37,252 +45,170 @@ const handleAuthError = async (response: Response): Promise<boolean> => {
   return false;
 };
 
-//All reports
-export const DashboardFetchReports = () => {
-  const { data: session } = authClient.useSession();
-  const [loading, setLoading] = useState(true);
-  const [reports, setReports] = useState<ReportProps[]>([]);
-  const [error, setError] = useState<string | null>(null);
+// ─── Paginated list hooks ────────────────────────────────────────────────────
 
-  useEffect(() => {
-    const fetchReports = async () => {
-      if (!session) return;
-      try {
-        const response = await fetch(
-          `${BACKEND}/reports/?limit=999`,
-          authedInit({}, session?.session?.token),
-        );
-
-        if (await handleAuthError(response)) return;
-
-        if (!response.ok) {
-          throw new Error("No tienes los permisos para ver este contenido");
-        }
-        const data = await response.json();
-        setReports(data);
-        setLoading(false);
-      } catch (err: any) {
-        setError(err.message);
-        setLoading(false);
-      }
-    };
-
-    fetchReports();
-  }, [session]);
-
-  return { loading, reports, error };
-};
-
-//single report
-export const useFetchReport = (reportId: string) => {
-  const { data: session } = authClient.useSession();
-  const [report, setReport] = useState<ReportProps | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function fetchReport() {
-      if (!session || !reportId) return;
-      try {
-        const response = await fetch(
-          `${BACKEND}/reports/${reportId}`,
-          authedInit({}, session?.session?.token),
-        );
-        if (!response.ok) {
-          throw new Error("Failed to fetch report");
-        }
-        const data = await response.json();
-        setReport(data);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchReport();
-  }, [session, reportId]);
-
-  return { report, loading, error };
-};
-
-export const useFetchSingleReport = (reportId: string) => {
-  const { data: session, isPending } = authClient.useSession();
-  const [loading, setLoading] = useState(true);
-  const [report, setReport] = useState<ReportProps | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (isPending) return;
-    if (!session) {
-      setLoading(false);
-      return;
-    }
-    fetchReport();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session, isPending, reportId]);
-
-  async function fetchReport() {
-    try {
-      const response = await fetch(
-        `${BACKEND}/reports/${reportId}`,
-        authedInit({}, session?.session?.token),
-      );
-
-      if (await handleAuthError(response)) return;
-      if (!reportId) {
-        toast.error("Reporte no existente o invalido");
-        return;
-      }
-      if (!response.ok) {
-        throw new Error("No se pudo obtener el reporte");
-      }
-
-      const data = await response.json();
-      setReport(data);
-    } catch (error: any) {
-      setError(error.message);
-      toast.error(error.message || "An error occurred while fetching reports.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  return { report, loading, error };
-};
-
-//All reports
 export const useFetchReports = (page: number = 1, limit: number = 10) => {
-  const { data: session, isPending } = authClient.useSession();
-  const [loading, setLoading] = useState(true);
-  const [reports, setReports] = useState<ReportProps[]>([]);
-  const [total, setTotal] = useState(0);
-  const [error, setError] = useState<string | null>(null);
+  const { data: session, isPending: sessionPending } = authClient.useSession();
 
-  useEffect(() => {
-    if (isPending) return;
-    if (!session) {
-      setLoading(false);
-      return;
-    }
-    fetchReports();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session, isPending, page, limit]);
-
-  async function fetchReports() {
-    setLoading(true);
-    try {
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["reports", "all", page, limit],
+    queryFn: async () => {
       const offset = (page - 1) * limit;
       const response = await fetch(
         `${BACKEND}/reports/?limit=${limit}&offset=${offset}`,
         authedInit({}, session?.session?.token),
       );
+      await throwOnAuthError(response);
+      if (!response.ok) throw new Error("Error al obtener los reportes");
+      return response.json() as Promise<{ data: ReportProps[]; total: number }>;
+    },
+    enabled: !!session && !sessionPending,
+    retry: false,
+  });
 
-      if (await handleAuthError(response)) return;
-      if (!response.ok) throw new Error("Failed to fetch reports");
-
-      const result = await response.json();
-      setReports(result.data ?? []);
-      setTotal(result.total ?? 0);
-    } catch (error: any) {
-      setError(error.message);
-      toast.error(error.message || "An error occurred while fetching reports.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  return { reports, total, loading, error, fetchReports };
+  return {
+    reports: data?.data ?? [],
+    total: data?.total ?? 0,
+    loading: isLoading,
+    error: error?.message ?? null,
+    fetchReports: refetch,
+  };
 };
 
-//Mantenimiento reports
 export const useFetchMantenimientoReports = (page: number = 1, limit: number = 10) => {
-  const { data: session, isPending } = authClient.useSession();
-  const [loading, setLoading] = useState(true);
-  const [reports, setReports] = useState<ReportProps[]>([]);
-  const [total, setTotal] = useState(0);
-  const [error, setError] = useState<string | null>(null);
+  const { data: session, isPending: sessionPending } = authClient.useSession();
 
-  useEffect(() => {
-    if (isPending) return;
-    if (!session) {
-      setLoading(false);
-      return;
-    }
-    fetchReports();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session, isPending, page, limit]);
-
-  async function fetchReports() {
-    setLoading(true);
-    try {
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["reports", "mantenimiento", page, limit],
+    queryFn: async () => {
       const offset = (page - 1) * limit;
       const response = await fetch(
         `${BACKEND}/reports/department/mantenimiento/?limit=${limit}&offset=${offset}`,
         authedInit({}, session?.session?.token),
       );
+      await throwOnAuthError(response);
+      if (!response.ok) throw new Error("Error al obtener los reportes");
+      return response.json() as Promise<{ data: ReportProps[]; total: number }>;
+    },
+    enabled: !!session && !sessionPending,
+    retry: false,
+  });
 
-      if (await handleAuthError(response)) return;
-      if (!response.ok) throw new Error("Failed to fetch reports");
-
-      const result = await response.json();
-      setReports(result.data ?? []);
-      setTotal(result.total ?? 0);
-    } catch (error: any) {
-      setError(error.message);
-      toast.error(error.message || "An error occurred while fetching reports.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  return { reports, total, loading, error, fetchReports };
+  return {
+    reports: data?.data ?? [],
+    total: data?.total ?? 0,
+    loading: isLoading,
+    error: error?.message ?? null,
+    fetchReports: refetch,
+  };
 };
 
 export const useFetchObrasReports = (page: number = 1, limit: number = 10) => {
-  const { data: session, isPending } = authClient.useSession();
-  const [loading, setLoading] = useState(true);
-  const [reports, setReports] = useState<ReportProps[]>([]);
-  const [total, setTotal] = useState(0);
-  const [error, setError] = useState<string | null>(null);
+  const { data: session, isPending: sessionPending } = authClient.useSession();
 
-  useEffect(() => {
-    if (isPending) return;
-    if (!session) {
-      setLoading(false);
-      return;
-    }
-    fetchReports();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session, isPending, page, limit]);
-
-  async function fetchReports() {
-    setLoading(true);
-    try {
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["reports", "obras", page, limit],
+    queryFn: async () => {
       const offset = (page - 1) * limit;
       const response = await fetch(
         `${BACKEND}/reports/department/obras/?limit=${limit}&offset=${offset}`,
         authedInit({}, session?.session?.token),
       );
+      await throwOnAuthError(response);
+      if (!response.ok) throw new Error("Error al obtener los reportes");
+      return response.json() as Promise<{ data: ReportProps[]; total: number }>;
+    },
+    enabled: !!session && !sessionPending,
+    retry: false,
+  });
 
-      if (await handleAuthError(response)) return;
-      if (!response.ok) throw new Error("Failed to fetch reports");
-
-      const result = await response.json();
-      setReports(result.data ?? []);
-      setTotal(result.total ?? 0);
-    } catch (error: any) {
-      setError(error.message);
-      toast.error(error.message || "An error occurred while fetching reports.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  return { reports, total, loading, error, fetchReports };
+  return {
+    reports: data?.data ?? [],
+    total: data?.total ?? 0,
+    loading: isLoading,
+    error: error?.message ?? null,
+    fetchReports: refetch,
+  };
 };
 
-// update status
+// ─── Single report ───────────────────────────────────────────────────────────
+
+export const useFetchSingleReport = (reportId: string) => {
+  const { data: session, isPending: sessionPending } = authClient.useSession();
+
+  const { data: report, isLoading: loading, error } = useQuery({
+    queryKey: ["report", reportId],
+    queryFn: async () => {
+      const response = await fetch(
+        `${BACKEND}/reports/${reportId}`,
+        authedInit({}, session?.session?.token),
+      );
+      await throwOnAuthError(response);
+      if (!response.ok) throw new Error("No se pudo obtener el reporte");
+      return response.json() as Promise<ReportProps>;
+    },
+    enabled: !!session && !sessionPending && !!reportId,
+    retry: false,
+  });
+
+  return { report: report ?? null, loading, error: error?.message ?? null };
+};
+
+// Kept for backward compatibility with useFetchReport callers
+export const useFetchReport = useFetchSingleReport;
+
+// ─── Dashboard summary (no pagination needed) ────────────────────────────────
+
+export const DashboardFetchReports = () => {
+  const { data: session, isPending: sessionPending } = authClient.useSession();
+
+  const { data, isLoading: loading, error } = useQuery({
+    queryKey: ["reports", "dashboard"],
+    queryFn: async () => {
+      const response = await fetch(
+        `${BACKEND}/reports/?limit=999`,
+        authedInit({}, session?.session?.token),
+      );
+      await throwOnAuthError(response);
+      if (!response.ok) throw new Error("Error al obtener los reportes");
+      return response.json() as Promise<ReportProps[]>;
+    },
+    enabled: !!session && !sessionPending,
+    retry: false,
+  });
+
+  return { reports: data ?? [], loading, error: error?.message ?? null };
+};
+
+export const useFetchReportsByRole = () => {
+  const { data: session, isPending: sessionPending } = authClient.useSession();
+
+  const { data, isLoading: loading, error } = useQuery({
+    queryKey: ["reports", "by-role", session?.user?.role],
+    queryFn: async () => {
+      const roles = rolesOf(session?.user?.role);
+      let url = `${BACKEND}/reports`;
+      if (roles.includes("admin")) {
+        url += "/?limit=999";
+      } else if (roles.includes("mantenimiento")) {
+        url += "/department/mantenimiento/?limit=999";
+      } else if (roles.includes("obras")) {
+        url += "/department/obras/?limit=999";
+      }
+      const response = await fetch(url, authedInit({}, session?.session?.token));
+      await throwOnAuthError(response);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      return response.json() as Promise<ReportProps[]>;
+    },
+    enabled: !!session && !sessionPending && rolesOf(session?.user?.role).length > 0,
+    retry: false,
+  });
+
+  return { reports: data ?? [], loading, error: error?.message ?? null };
+};
+
+// ─── Mutations ───────────────────────────────────────────────────────────────
+
 export const updateReportStatus = async (
   reportId: string,
   newStatus: string,
@@ -293,76 +219,19 @@ export const updateReportStatus = async (
       `${BACKEND}/reports/${reportId}/status`,
       authedInit({ method: "PATCH", body: JSON.stringify({ status: newStatus }) }, token),
     );
-
     if (await handleAuthError(response)) return;
     if (response.ok) {
       toast.success("Actualizado");
       return;
     }
-
     const data = await response.json();
     throw new Error(data.message || "Failed to update report");
   } catch (error) {
     toast.error("Error: No fue posible actualizar", { duration: 3000 });
-    console.error("Error updating report status:", error);
     throw error;
   }
 };
 
-export const useFetchReportsByRole = () => {
-  const { data: session, isPending } = authClient.useSession();
-  const [reports, setReports] = useState<ReportProps[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchReports = async () => {
-      if (isPending) return;
-      if (!session) {
-        setLoading(false);
-        return;
-      }
-
-      const roles = rolesOf(session.user?.role);
-      if (roles.length === 0) {
-        setLoading(false);
-        return;
-      }
-
-      setLoading(true);
-      let url = `${BACKEND}/reports`;
-      if (roles.includes("admin")) {
-        url += "/?limit=999";
-      } else if (roles.includes("mantenimiento")) {
-        url += "/department/mantenimiento/?limit=999";
-      } else if (roles.includes("obras")) {
-        url += "/department/obras/?limit=999";
-      }
-
-      try {
-        const response = await fetch(url, authedInit({}, session?.session?.token));
-
-        if (await handleAuthError(response)) return;
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        setReports(data);
-      } catch (error) {
-        console.error("Error fetching reports:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchReports();
-  }, [session, isPending]);
-
-  return { reports, loading, error };
-};
-
-// update department
 export const updateReportDepartment = async (
   reportId: string,
   newDepartment: string,
@@ -373,18 +242,15 @@ export const updateReportDepartment = async (
       `${BACKEND}/reports/${reportId}/department`,
       authedInit({ method: "PATCH", body: JSON.stringify({ department: newDepartment }) }, token),
     );
-
     if (await handleAuthError(response)) return;
     if (response.ok) {
       toast.success("Actualizado");
       return;
     }
-
     const data = await response.json();
     throw new Error(data.message || "Failed to update department");
   } catch (error) {
     toast.error("Error: No fue posible actualizar", { duration: 3000 });
-    console.error("Error updating report department:", error);
     throw error;
   }
 };

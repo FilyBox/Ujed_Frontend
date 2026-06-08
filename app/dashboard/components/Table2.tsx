@@ -48,13 +48,10 @@ const Table2: React.FC<Table2Props> = ({
 }) => {
   const { data: session } = authClient.useSession();
   const [filterValue, setFilterValue] = useState("");
-  const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set([]));
   const [visibleColumns, setVisibleColumns] = useState<Selection>("all");
   const [statusFilter, setStatusFilter] = useState<Selection>("all");
   const [departmentFilter, setDepartmentFilter] = useState<Selection>("all");
-  const [departmentChanges, setDepartmentChanges] = useState<
-    Record<string, string>
-  >({});
+  const [departmentChanges, setDepartmentChanges] = useState<Record<string, string>>({});
   const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({
     column: "title",
     direction: "ascending",
@@ -261,7 +258,6 @@ const Table2: React.FC<Table2Props> = ({
                   </DropdownTrigger>
                   <DropdownMenu
                     aria-label='option choices'
-                    selectedKeys={selectedKeys}
                   >
                     {departmentOptionsNoNull.map((department) => (
                       <DropdownItem
@@ -293,12 +289,7 @@ const Table2: React.FC<Table2Props> = ({
             <div className='relative flex items-center justify-center'>
               <Tooltip content='Ver'>
                 <span className='text-lg text-default-400 cursor-pointer active:opacity-50'>
-                  <Link
-                    href={{
-                      pathname: "/dashboard/reportsdetails",
-                      query: { id: report.id },
-                    }}
-                  >
+                  <Link href={`/dashboard/reportsdetails/${report.id}`}>
                     <EyeIcon />
                   </Link>
                 </span>
@@ -459,9 +450,7 @@ const Table2: React.FC<Table2Props> = ({
     return (
       <div className='py-2 px-2 flex justify-between items-center'>
         <span className='w-[30%] text-small text-default-400'>
-          {selectedKeys === "all"
-            ? "Todos seleccionados"
-            : `${selectedKeys.size} de ${filteredItems.length} seleccionados`}
+          {filteredItems.length} de {total} registros
         </span>
         <Pagination
           isCompact
@@ -494,7 +483,7 @@ const Table2: React.FC<Table2Props> = ({
         </div>
       </div>
     );
-  }, [selectedKeys, filteredItems.length, page, pages, onPageChange, onNextPage, onPreviousPage, hasSearchFilter]);
+  }, [filteredItems.length, total, page, pages, onPageChange, onNextPage, onPreviousPage]);
 
   return (
     <Table
@@ -508,7 +497,6 @@ const Table2: React.FC<Table2Props> = ({
       sortDescriptor={sortDescriptor}
       topContent={topContent}
       topContentPlacement='outside'
-      onSelectionChange={setSelectedKeys}
       onSortChange={setSortDescriptor}
     >
       <TableHeader columns={headerColumns}>

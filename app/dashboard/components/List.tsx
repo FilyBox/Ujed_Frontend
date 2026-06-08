@@ -183,13 +183,11 @@ const List: React.FC<ListProps> = ({ reports, onDataChange }) => {
                 <p>{report.description ? ( report.description.length > 150 ? `${ report.description.substring(0, 150)}...` :  report.description) : "Sin descripción"}</p>
 
 
-                <Link href={{
-                            pathname: '/dashboard/reportsdetails',
-                            query:{id: report.id } 
-                            
-                        }} className="bg-[#B11830] text-white py-2 rounded-md hover:bg-red-600 transition-colors duration-300 focus:ring-blue-300 font-medium text-sm px-5  text-center mr-2 mb-2">
-                        
-                            Ver detalles
+                <Link
+                  href={`/dashboard/reportsdetails/${report.id}`}
+                  className="bg-[#B11830] text-white py-2 rounded-md hover:bg-red-600 transition-colors duration-300 font-medium text-sm px-5 text-center mr-2 mb-2"
+                >
+                  Ver detalles
                 </Link>
 
             </div>
