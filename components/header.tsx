@@ -18,7 +18,7 @@ import { NavBarItemGroup } from "@/types/type";
 
 export default function Header() {
   const { data: session } = authClient.useSession();
-  const roles = rolesOf(session?.user?.role);
+  const roles = rolesOf(session?.user?.roles);
   const { toggleCollapse, invokeToggleCollapse } = useSideBarToggle();
   const router = useRouter();
 
@@ -95,7 +95,7 @@ export default function Header() {
     }
 
     return items;
-  }, [session?.user?.role]);
+  }, [session?.user?.roles]);
 
   const userNameDisplay = session?.user?.name
     ? session?.user?.name.length > 10

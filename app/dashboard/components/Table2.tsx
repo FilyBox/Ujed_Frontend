@@ -51,7 +51,9 @@ const Table2: React.FC<Table2Props> = ({
   const [visibleColumns, setVisibleColumns] = useState<Selection>("all");
   const [statusFilter, setStatusFilter] = useState<Selection>("all");
   const [departmentFilter, setDepartmentFilter] = useState<Selection>("all");
-  const [departmentChanges, setDepartmentChanges] = useState<Record<string, string>>({});
+  const [departmentChanges, setDepartmentChanges] = useState<
+    Record<string, string>
+  >({});
   const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({
     column: "title",
     direction: "ascending",
@@ -134,16 +136,18 @@ const Table2: React.FC<Table2Props> = ({
   }, [reports, filterValue, statusFilter, hasSearchFilter, departmentFilter]);
 
   const sortedItems = useMemo(() => {
-    return [...filteredItems].sort((a: ReportPropsTable, b: ReportPropsTable) => {
-      const first = a[
-        sortDescriptor.column as keyof ReportPropsTable
-      ] as unknown as number;
-      const second = b[
-        sortDescriptor.column as keyof ReportPropsTable
-      ] as unknown as number;
-      const cmp = first < second ? -1 : first > second ? 1 : 0;
-      return sortDescriptor.direction === "descending" ? -cmp : cmp;
-    });
+    return [...filteredItems].sort(
+      (a: ReportPropsTable, b: ReportPropsTable) => {
+        const first = a[
+          sortDescriptor.column as keyof ReportPropsTable
+        ] as unknown as number;
+        const second = b[
+          sortDescriptor.column as keyof ReportPropsTable
+        ] as unknown as number;
+        const cmp = first < second ? -1 : first > second ? 1 : 0;
+        return sortDescriptor.direction === "descending" ? -cmp : cmp;
+      },
+    );
   }, [sortDescriptor, filteredItems]);
 
   const renderCell = useCallback(
@@ -163,7 +167,7 @@ const Table2: React.FC<Table2Props> = ({
             </div>
           );
         case "status": {
-          const isAdminStatus = rolesOf(session?.user?.role).includes("admin");
+          const isAdminStatus = rolesOf(session?.user?.roles).includes("admin");
           return (
             <div className='flex justify-center items-center'>
               <Chip
@@ -233,7 +237,9 @@ const Table2: React.FC<Table2Props> = ({
           );
         }
         case "department": {
-          const isAdminDepartment = rolesOf(session?.user?.role).includes("admin");
+          const isAdminDepartment = rolesOf(session?.user?.roles).includes(
+            "admin",
+          );
           return (
             <div key={report.id} className='flex justify-center items-center'>
               <Chip
@@ -256,9 +262,7 @@ const Table2: React.FC<Table2Props> = ({
                       <ChevronDownIcon className='text-small' />
                     </Button>
                   </DropdownTrigger>
-                  <DropdownMenu
-                    aria-label='option choices'
-                  >
+                  <DropdownMenu aria-label='option choices'>
                     {departmentOptionsNoNull.map((department) => (
                       <DropdownItem
                         key={department.name}
@@ -483,7 +487,15 @@ const Table2: React.FC<Table2Props> = ({
         </div>
       </div>
     );
-  }, [filteredItems.length, total, page, pages, onPageChange, onNextPage, onPreviousPage]);
+  }, [
+    filteredItems.length,
+    total,
+    page,
+    pages,
+    onPageChange,
+    onNextPage,
+    onPreviousPage,
+  ]);
 
   return (
     <Table

@@ -91,7 +91,7 @@ export const SideBar = () => {
     }
 
     return items;
-  }, [session?.user?.role]);
+  }, [session?.user?.roles]);
 
   return (
     <aside className={asideStyle}>

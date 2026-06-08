@@ -6,7 +6,10 @@ import { toast } from "sonner";
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-const authedInit = (init: RequestInit = {}, token?: string | null): RequestInit => ({
+const authedInit = (
+  init: RequestInit = {},
+  token?: string | null,
+): RequestInit => ({
   credentials: "include",
   ...init,
   headers: {
@@ -75,7 +78,10 @@ export const useFetchReports = (page: number = 1, limit: number = 10) => {
   };
 };
 
-export const useFetchMantenimientoReports = (page: number = 1, limit: number = 10) => {
+export const useFetchMantenimientoReports = (
+  page: number = 1,
+  limit: number = 10,
+) => {
   const { data: session, isPending: sessionPending } = authClient.useSession();
 
   const { data, isLoading, error, refetch } = useQuery({
@@ -136,7 +142,11 @@ export const useFetchObrasReports = (page: number = 1, limit: number = 10) => {
 export const useFetchSingleReport = (reportId: string) => {
   const { data: session, isPending: sessionPending } = authClient.useSession();
 
-  const { data: report, isLoading: loading, error } = useQuery({
+  const {
+    data: report,
+    isLoading: loading,
+    error,
+  } = useQuery({
     queryKey: ["report", reportId],
     queryFn: async () => {
       const response = await fetch(
@@ -162,7 +172,11 @@ export const useFetchReport = useFetchSingleReport;
 export const DashboardFetchReports = () => {
   const { data: session, isPending: sessionPending } = authClient.useSession();
 
-  const { data, isLoading: loading, error } = useQuery({
+  const {
+    data,
+    isLoading: loading,
+    error,
+  } = useQuery({
     queryKey: ["reports", "dashboard"],
     queryFn: async () => {
       const response = await fetch(
@@ -183,10 +197,14 @@ export const DashboardFetchReports = () => {
 export const useFetchReportsByRole = () => {
   const { data: session, isPending: sessionPending } = authClient.useSession();
 
-  const { data, isLoading: loading, error } = useQuery({
-    queryKey: ["reports", "by-role", session?.user?.role],
+  const {
+    data,
+    isLoading: loading,
+    error,
+  } = useQuery({
+    queryKey: ["reports", "by-role", session?.user?.roles],
     queryFn: async () => {
-      const roles = rolesOf(session?.user?.role);
+      const roles = rolesOf(session?.user?.roles);
       let url = `${BACKEND}/reports`;
       if (roles.includes("admin")) {
         url += "/?limit=999";
@@ -195,12 +213,17 @@ export const useFetchReportsByRole = () => {
       } else if (roles.includes("obras")) {
         url += "/department/obras/?limit=999";
       }
-      const response = await fetch(url, authedInit({}, session?.session?.token));
+      const response = await fetch(
+        url,
+        authedInit({}, session?.session?.token),
+      );
       await throwOnAuthError(response);
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response.ok)
+        throw new Error(`HTTP error! status: ${response.status}`);
       return response.json() as Promise<ReportProps[]>;
     },
-    enabled: !!session && !sessionPending && rolesOf(session?.user?.role).length > 0,
+    enabled:
+      !!session && !sessionPending && rolesOf(session?.user?.roles).length > 0,
     retry: false,
   });
 
@@ -217,7 +240,10 @@ export const updateReportStatus = async (
   try {
     const response = await fetch(
       `${BACKEND}/reports/${reportId}/status`,
-      authedInit({ method: "PATCH", body: JSON.stringify({ status: newStatus }) }, token),
+      authedInit(
+        { method: "PATCH", body: JSON.stringify({ status: newStatus }) },
+        token,
+      ),
     );
     if (await handleAuthError(response)) return;
     if (response.ok) {
@@ -240,7 +266,13 @@ export const updateReportDepartment = async (
   try {
     const response = await fetch(
       `${BACKEND}/reports/${reportId}/department`,
-      authedInit({ method: "PATCH", body: JSON.stringify({ department: newDepartment }) }, token),
+      authedInit(
+        {
+          method: "PATCH",
+          body: JSON.stringify({ department: newDepartment }),
+        },
+        token,
+      ),
     );
     if (await handleAuthError(response)) return;
     if (response.ok) {
